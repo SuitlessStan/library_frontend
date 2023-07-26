@@ -86,7 +86,7 @@ export default function Navbar() {
           <ul className="font-medium flex flex-col md:flex-row mt-5 rounded-lg text-center md:space-x-8 md:mt-0 border-gray-700">
             <li>
               <Link
-                href="/login"
+                href="#"
                 onClick={handleLinkClick}
                 className="block py-2 pl-3 pr-4 md:p-0 rounded text-sm md:text-lg border-b-4 border-transparent hover:border-white transition-colors font-Roboto">
                 Log in
@@ -94,7 +94,7 @@ export default function Navbar() {
             </li>
             <li>
               <Link
-                href="/signup"
+                href="#"
                 onClick={handleLinkClick}
                 className="block py-2 pl-3 pr-4 md:p-0 rounded text-sm md:text-lg border-b-4 border-transparent hover:border-white transition-colors font-Roboto">
                 Sign up
@@ -103,7 +103,6 @@ export default function Navbar() {
           </ul>
         </div>
       </div>
-      <hr className="dark:border-white border-black" />
     </nav>
   )
 }
