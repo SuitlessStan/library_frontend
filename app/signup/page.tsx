@@ -38,7 +38,7 @@ export default function SignUp() {
   return (
     <>
       <form
-        className="mt-40 border rounded flex flex-col mx-auto p-5 w-full md:w-2/5"
+        className="my-40 border rounded flex flex-col mx-auto p-5 w-full md:w-2/5"
         action="/signup"
         method="POST">
         <span className="text-4xl my-4 block">Sign up</span>
