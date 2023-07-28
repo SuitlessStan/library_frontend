@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server"
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth"
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import initFirebase from "@/firebase/config"
 
 export async function POST(request: NextRequest, response: NextResponse) {
@@ -15,11 +15,14 @@ export async function POST(request: NextRequest, response: NextResponse) {
   try {
     initFirebase()
     const auth = getAuth()
-    createUserWithEmailAndPassword(auth, emailValue as string, passwordValue as string).then(
-      (userCredential) => {
-        const user = userCredential.user
-      }
+    const userCredentials = await createUserWithEmailAndPassword(
+      auth,
+      emailValue as string,
+      passwordValue as string
     )
+    if (userCredentials) {
+      await sendEmailVerification(userCredentials.user)
+    }
     return NextResponse.json(
       { message: "New user has been successfully created!" },
       { status: 200 }

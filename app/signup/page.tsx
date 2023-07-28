@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import axios from "axios"
 
 export default function SignUp() {
@@ -12,6 +12,12 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false)
   const [showAlert, setShowAlert] = useState(false)
   const [showError, setShowError] = useState(false)
+
+  const ref = useRef(null)
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
+  }
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -57,11 +63,13 @@ export default function SignUp() {
     setLoading(false)
     setEmail("")
     setPassword("")
+    scrollToTop()
   }
 
   return (
     <>
       <form
+        ref={ref}
         onSubmit={handleSubmit}
         className="my-40 border rounded flex flex-col mx-auto p-5 w-full md:w-2/5"
         action="/api/signup"
