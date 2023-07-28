@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server"
-import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
 import initFirebase from "@/firebase/config"
 
 export async function POST(request: NextRequest, response: NextResponse) {
@@ -7,12 +7,7 @@ export async function POST(request: NextRequest, response: NextResponse) {
 
   const emailValue = formData.get("email")
   const passwordValue = formData.get("password")
-  const confirmPasswordValue = formData.get("confirmPassword")
 
-  if (passwordValue != confirmPasswordValue) {
-    return NextResponse.json({ message: "Passwords do not match" }, { status: 400 })
-  }
-  
   if (!emailValue || !passwordValue) {
     return NextResponse.json({ message: "please fill all required fields!" }, { status: 400 })
   }
@@ -20,18 +15,14 @@ export async function POST(request: NextRequest, response: NextResponse) {
   try {
     initFirebase()
     const auth = getAuth()
-    const userCredentials = await createUserWithEmailAndPassword(
+    const userCredentials = await signInWithEmailAndPassword(
       auth,
       emailValue as string,
       passwordValue as string
     )
     if (userCredentials) {
-      await sendEmailVerification(userCredentials.user)
+      return NextResponse.redirect(new URL("/", request.url))
     }
-    return NextResponse.json(
-      { message: "New user has been successfully created!" },
-      { status: 200 }
-    )
   } catch (err) {
     console.error(err)
     return NextResponse.json({ error: err }, { status: 400 })

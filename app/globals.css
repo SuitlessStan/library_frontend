@@ -22,10 +22,12 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-/* Landing Page */
-/* .background-image {
-  background-image: url("../");
-} */
+.message-progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 
 .circular-progress {
   display: inline-block;
