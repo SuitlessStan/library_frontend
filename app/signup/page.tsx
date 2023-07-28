@@ -1,12 +1,17 @@
 "use client"
 
 import { useState } from "react"
+import axios from "axios"
 
 export default function SignUp() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [emailError, setEmailError] = useState("")
   const [passwordError, setPasswordError] = useState("")
+
+  const [loading, setLoading] = useState(false)
+  const [showAlert, setShowAlert] = useState(false)
+  const [showError, setShowError] = useState(false)
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -35,13 +40,54 @@ export default function SignUp() {
     }
   }
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement | undefined>) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const data = new FormData(e.currentTarget)
+      await axios.post("/api/signup", data)
+      setShowAlert(true)
+      setTimeout(() => setShowAlert(false), 5000)
+    } catch (err) {
+      console.error(err)
+      setShowError(true)
+      setTimeout(() => setShowError(false), 5000)
+    }
+    setLoading(false)
+    setEmail("")
+    setPassword("")
+  }
+
   return (
     <>
       <form
+        onSubmit={handleSubmit}
         className="my-40 border rounded flex flex-col mx-auto p-5 w-full md:w-2/5"
-        action="/signup"
+        action="/api/signup"
         method="POST">
         <span className="text-4xl my-4 block">Sign up</span>
+        <div className="message-progress">
+          {loading && <div className="circular-progress"></div>}
+          {showAlert && (
+            <div
+              className="bg-blue-100 border-t border-b border-green-500 text-green-700 px-4 py-3"
+              role="alert">
+              <p className="font-bold">New User Created!</p>
+              <p className="text-sm">Please check your email to verify your account!</p>
+            </div>
+          )}
+          {showError && (
+            <div
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+              role="alert">
+              <strong className="font-bold block">Oh no!</strong>
+              <span className="block sm:inline">
+                Something went wrong while sending the message
+              </span>
+            </div>
+          )}
+        </div>
         <div className="input my-4 flex flex-col gap-2">
           <label htmlFor="email" className="text-xl">
             Email

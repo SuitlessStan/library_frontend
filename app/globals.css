@@ -26,3 +26,22 @@ body {
 /* .background-image {
   background-image: url("../");
 } */
+
+.circular-progress {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border: 3px solid #ccc;
+  border-top: 3px solid #007bff; /* Replace with your desired progress bar color */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
