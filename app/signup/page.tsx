@@ -19,6 +19,12 @@ export default function SignUp() {
     confirmPassword: "",
   })
 
+  const [formDataError, setFormDataError] = useState({
+    emailError: "",
+    passwordError: "",
+    confirmPasswordError: "",
+  })
+
   const [loading, setLoading] = useState(false)
   const [showAlert, setShowAlert] = useState(false)
   const [error, setError] = useState("")
@@ -29,6 +35,15 @@ export default function SignUp() {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
   }
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement | undefined>) => {
     e.preventDefault()
     scrollToTop()
@@ -36,20 +51,18 @@ export default function SignUp() {
 
     const { email, password, confirmPassword } = formData
 
-    if (!validateEmail(email)) {
-      setError("Invalid email format.")
-      setLoading(false)
-      return
-    }
+    const emailError = validateEmail(email) ? "" : "Invalid Email format"
+    const passwordError = validatePassword(password)
+      ? ""
+      : "Password should be longer than 6 characters!"
 
-    if (!validatePassword(password)) {
-      setError("Password should be at least 6 characters long.")
-      setLoading(false)
-      return
-    }
+    setFormDataError({
+      emailError,
+      passwordError,
+      confirmPasswordError: password !== confirmPassword ? "Passwords do not match" : "",
+    })
 
-    if (password != confirmPassword) {
-      setError("Passwords do not match.")
+    if (emailError || passwordError || password !== confirmPassword) {
       setLoading(false)
       return
     }
@@ -61,7 +74,7 @@ export default function SignUp() {
       setTimeout(() => setShowAlert(false), 7000)
     } catch (err) {
       console.error(err)
-      setError("Something went wrong while sending the message")
+      setError("Something went wrong while sending the request")
       setTimeout(() => setError(""), 5000)
     }
     setLoading(false)
@@ -73,14 +86,8 @@ export default function SignUp() {
     })
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }))
-  }
+  const { email, password, confirmPassword } = formData
+  const { emailError, passwordError, confirmPasswordError } = formDataError
 
   return (
     <>
@@ -119,12 +126,13 @@ export default function SignUp() {
             type="text"
             placeholder="Email"
             name="email"
-            value={formData.email}
+            value={email}
             onChange={handleChange}
             className={`w-full border-4 rounded text-black ${
-              error && !validateEmail(formData.email) ? "border-red-400" : "border-gray-500"
+              emailError ? "border-red-400" : "border-gray-500"
             } p-4`}
           />
+          {emailError && <span className="text-red-400">{emailError}</span>}
         </div>
         <div className="input my-4 flex flex-col gap-2">
           <label htmlFor="password" className="text-xl">
@@ -134,12 +142,14 @@ export default function SignUp() {
             type="password"
             name="password"
             placeholder="Password"
-            value={formData.password}
+            value={password}
             onChange={handleChange}
-            className={`w-full border-4 rounded text-black ${
-              error && !validatePassword(formData.password) ? "border-red-400" : "border-gray-500"
+            className={`w-full border-4 rounded text-black  ${
+              passwordError ? "border-red-400" : "border-gray-500"
             } p-4`}
           />
+          {passwordError && <span className="text-red-400">{passwordError}</span>}
+          {confirmPasswordError && <span className="text-red-400">{confirmPasswordError}</span>}
         </div>
         <div className="input my-4 flex flex-col gap-2">
           <label htmlFor="password" className="text-xl">
@@ -149,14 +159,13 @@ export default function SignUp() {
             type="password"
             name="confirmPassword"
             placeholder="Password"
-            value={formData.confirmPassword}
+            value={confirmPassword}
             onChange={handleChange}
             className={`w-full border-4 rounded text-black ${
-              error && formData.password !== formData.confirmPassword
-                ? "border-red-400"
-                : "border-gray-500"
+              confirmPasswordError ? "border-red-400" : "border-gray-500"
             } p-4`}
           />
+          {confirmPasswordError && <span className="text-red-400">{confirmPasswordError}</span>}
         </div>
 
         <button
@@ -167,7 +176,7 @@ export default function SignUp() {
 
         <span className="ml-1 text-md">
           Already a member ?{" "}
-          <Link className="border border-transparent border-b-white" href="/login">
+          <Link className="border border-transparent border-b-white pb-1" href="/login">
             Log in
           </Link>
         </span>

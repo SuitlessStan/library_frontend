@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from "next/server"
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
 import initFirebase from "@/firebase/config"
+import { json } from "stream/consumers"
 
 export async function POST(request: NextRequest, response: NextResponse) {
   const formData = await request.formData()
@@ -12,19 +13,22 @@ export async function POST(request: NextRequest, response: NextResponse) {
     return NextResponse.json({ message: "please fill all required fields!" }, { status: 400 })
   }
 
-  try {
-    initFirebase()
-    const auth = getAuth()
-    const userCredentials = await signInWithEmailAndPassword(
-      auth,
-      emailValue as string,
-      passwordValue as string
-    )
-    if (userCredentials) {
-      return NextResponse.redirect(new URL("/", request.url))
-    }
-  } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: err }, { status: 400 })
+  // try {
+  initFirebase()
+
+  const userCredentials = await signInWithEmailAndPassword(
+    getAuth(),
+    emailValue as string,
+    passwordValue as string
+  )
+
+  if (userCredentials) {
+    return NextResponse.json({ accessToken: await userCredentials.user.getIdToken() })
   }
+
+  return NextResponse.json({ message: "Something went wrong!" }, { status: 400 })
+}
+
+export async function GET(request: NextRequest, response: NextResponse) {
+  return NextResponse.json({ message: "login get api request works", status: 200 })
 }
