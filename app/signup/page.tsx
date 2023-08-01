@@ -1,7 +1,10 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import axios from "axios"
 import Link from "next/link"
+import Cookies from "js-cookie"
+import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 
 const validateEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -24,6 +27,14 @@ export default function SignUp() {
     passwordError: "",
     confirmPasswordError: "",
   })
+
+  const router = useRouter()
+
+  useEffect(() => {
+    if (Cookies.get("accessToken")) {
+      redirect("/")
+    }
+  }, [])
 
   const [loading, setLoading] = useState(false)
   const [showAlert, setShowAlert] = useState(false)
@@ -71,11 +82,11 @@ export default function SignUp() {
       const data = new FormData(e.currentTarget)
       await axios.post("/api/signup", data)
       setShowAlert(true)
-      setTimeout(() => setShowAlert(false), 7000)
+      setTimeout(() => setShowAlert(false), 3000)
     } catch (err) {
       console.error(err)
       setError("Something went wrong while sending the request")
-      setTimeout(() => setError(""), 5000)
+      setTimeout(() => setError(""), 3000)
     }
     setLoading(false)
 
@@ -84,6 +95,8 @@ export default function SignUp() {
       password: "",
       confirmPassword: "",
     })
+
+    setTimeout(() => router.push("/login"), 2000)
   }
 
   const { email, password, confirmPassword } = formData
@@ -170,8 +183,9 @@ export default function SignUp() {
 
         <button
           type="submit"
+          disabled={loading}
           className="w-3/5 mx-auto border my-5 rounded border-gray-400 bg-gray-600 py-4">
-          Sign up
+          {loading ? "Signing up..." : "Sign up"}
         </button>
 
         <span className="ml-1 text-md">

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { useState, useRef, useEffect } from "react"
 import axios from "axios"
 import Link from "next/link"
-import { access } from "fs"
+import Cookies from "js-cookie"
 
 const validateEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -35,11 +35,10 @@ export default function SignUp() {
   const ref = useRef(null)
 
   useEffect(() => {
-    if (localStorage.getItem("accessToken")) {
+    if (Cookies.get("accessToken")) {
       redirect("/")
     }
   }, [accessToken])
-
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
@@ -83,8 +82,9 @@ export default function SignUp() {
       if (response.status === 200) {
         const accessToken = response.data.accessToken
 
-        localStorage.setItem("accessToken", accessToken)
+        Cookies.set("accessToken", accessToken)
 
+        setTimeout(() => setShowAlert(true), 3000)
         setAccessToken(accessToken)
       }
     } catch (err) {
@@ -119,8 +119,8 @@ export default function SignUp() {
             <div
               className="bg-blue-100 border-t border-b border-green-500 text-green-700 px-4 py-3"
               role="alert">
-              <p className="font-bold">New User Created!</p>
-              <p className="text-sm">Please check your email to verify your account!</p>
+              <p className="font-bold">Login successful</p>
+              <p className="text-sm">You may now enter your library!</p>
             </div>
           )}
           {error && (
@@ -168,8 +168,9 @@ export default function SignUp() {
 
         <button
           type="submit"
+          disabled={loading}
           className="w-3/5 mx-auto border my-5 rounded border-gray-400 bg-gray-600 py-4">
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <span className="ml-1 text-md">
