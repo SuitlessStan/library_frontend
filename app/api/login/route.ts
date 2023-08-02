@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from "next/server"
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
 import initFirebase from "@/firebase/config"
-import { json } from "stream/consumers"
 
 export async function POST(request: NextRequest, response: NextResponse) {
   const formData = await request.formData()
@@ -27,8 +26,4 @@ export async function POST(request: NextRequest, response: NextResponse) {
   }
 
   return NextResponse.json({ message: "Something went wrong!" }, { status: 400 })
-}
-
-export async function GET(request: NextRequest, response: NextResponse) {
-  return NextResponse.json({ message: "login get api request works", status: 200 })
 }

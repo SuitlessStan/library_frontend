@@ -12,16 +12,15 @@ export async function POST(request: NextRequest, response: NextResponse) {
   if (passwordValue != confirmPasswordValue) {
     return NextResponse.json({ message: "Passwords do not match" }, { status: 400 })
   }
-  
+
   if (!emailValue || !passwordValue) {
     return NextResponse.json({ message: "please fill all required fields!" }, { status: 400 })
   }
 
   try {
     initFirebase()
-    const auth = getAuth()
     const userCredentials = await createUserWithEmailAndPassword(
-      auth,
+      getAuth(),
       emailValue as string,
       passwordValue as string
     )
