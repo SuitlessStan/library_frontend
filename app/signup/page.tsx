@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useEffect } from "react"
-import axios from "axios"
+import axios, { AxiosError } from "axios"
 import Link from "next/link"
 import Cookies from "js-cookie"
 import { redirect } from "next/navigation"
@@ -32,7 +32,7 @@ export default function SignUp() {
 
   useEffect(() => {
     if (Cookies.get("accessToken")) {
-      redirect("/")
+      redirect("/signup/settings")
     }
   }, [])
 
@@ -83,20 +83,29 @@ export default function SignUp() {
       await axios.post("/api/signup", data)
       setShowAlert(true)
       setTimeout(() => setShowAlert(false), 3000)
+      setTimeout(() => router.push("/signup/settings"), 2000)
     } catch (err) {
-      console.error(err)
-      setError("Something went wrong while sending the request")
-      setTimeout(() => setError(""), 3000)
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError
+        let errorMessage = "Something went wrong while sending the request"
+
+        if (axiosError.response) {
+          const responseData = axiosError.response.data
+          if (responseData.error && responseData.error.code === "auth/email-already-in-use") {
+            errorMessage = "Email is already in use. Please use a different email address."
+          } else if (responseData.message) {
+            errorMessage = responseData.message
+          }
+        }
+
+        console.error(axiosError)
+        setError(errorMessage)
+        setTimeout(() => setError(""), 3000)
+      } else {
+        console.error("An unknown error occurred:", err)
+      }
     }
     setLoading(false)
-
-    setFormData({
-      email: "",
-      password: "",
-      confirmPassword: "",
-    })
-
-    setTimeout(() => router.push("/login"), 2000)
   }
 
   const { email, password, confirmPassword } = formData
