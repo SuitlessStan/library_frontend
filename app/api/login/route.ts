@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from "next/server"
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
-import initFirebase from "@/firebase/config"
+import { signIn } from "@/firebase/auth/user"
 
 export async function POST(request: NextRequest, response: NextResponse) {
   const formData = await request.formData()
@@ -12,18 +11,9 @@ export async function POST(request: NextRequest, response: NextResponse) {
     return NextResponse.json({ message: "please fill all required fields!" }, { status: 400 })
   }
 
-  // try {
-  initFirebase()
-
-  const userCredentials = await signInWithEmailAndPassword(
-    getAuth(),
-    emailValue as string,
-    passwordValue as string
-  )
-
-  if (userCredentials) {
-    return NextResponse.json({ accessToken: await userCredentials.user.getIdToken() })
+  const { result, error } = await signIn(emailValue as string, passwordValue as string)
+  if (result) {
+    return NextResponse.json({ message: "signing in.." }, { status: 200 })
   }
-
-  return NextResponse.json({ message: "Something went wrong!" }, { status: 400 })
+  return NextResponse.json({ message: error }, { status: 400 })
 }

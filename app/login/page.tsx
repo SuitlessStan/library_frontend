@@ -1,19 +1,11 @@
 "use client"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import axios from "axios"
 import Link from "next/link"
-import Cookies from "js-cookie"
-
-const validateEmail = (email: string) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return email.trim() ? emailRegex.test(email) : false
-}
-
-const validatePassword = (password: string) => {
-  return password.trim() && password.length >= 6
-}
+import { validateEmail, validatePassword } from "@/utils/validator"
+import { signIn } from "@/firebase/auth/user"
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -26,19 +18,12 @@ export default function SignUp() {
     passwordError: "",
   })
 
-  const [accessToken, setAccessToken] = useState(null)
-
   const [loading, setLoading] = useState(false)
   const [showAlert, setShowAlert] = useState(false)
   const [error, setError] = useState("")
 
   const ref = useRef(null)
-
-  useEffect(() => {
-    if (Cookies.get("accessToken")) {
-      redirect("/")
-    }
-  }, [accessToken])
+  const router = useRouter()
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
@@ -76,16 +61,11 @@ export default function SignUp() {
     }
 
     try {
-      const data = new FormData(e.currentTarget)
-      const response = await axios.post("/api/login", data)
+      const response = await signIn(formData.email, formData.password)
 
-      if (response.status === 200) {
-        const accessToken = response.data.accessToken
-
-        Cookies.set("accessToken", accessToken)
-
+      if (response.result) {
         setTimeout(() => setShowAlert(true), 3000)
-        setAccessToken(accessToken)
+        router.push("/")
       }
     } catch (err) {
       console.error(err)
@@ -143,6 +123,7 @@ export default function SignUp() {
             name="email"
             value={email}
             onChange={handleChange}
+            required
             className={`w-full border-4 rounded text-black ${
               emailError ? "border-red-400" : "border-gray-500"
             } p-4`}
@@ -159,6 +140,7 @@ export default function SignUp() {
             placeholder="Password"
             value={password}
             onChange={handleChange}
+            required
             className={`w-full border-4 rounded text-black ${
               passwordError ? "border-red-400" : "border-gray-500"
             } p-4`}

@@ -3,18 +3,22 @@
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react"
 import axios from "axios"
 import Image from "next/image"
-import Cookies from "js-cookie"
 import { useRouter } from "next/navigation"
+import { getAuth } from "firebase/auth"
+import firebaseApp from "@/firebase/config"
+import { useAuthState } from "react-firebase-hooks/auth"
+
+const auth = getAuth(firebaseApp)
 
 export default function UserSettings() {
-  const isLoggedIn = !!Cookies.get("accessToken")
   const router = useRouter()
+  const [user] = useAuthState(auth)
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!user) {
       router.push("/signup")
     }
-  }, [])
+  })
 
   const [formData, setFormData] = useState({
     name: "",

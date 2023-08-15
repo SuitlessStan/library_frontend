@@ -1,19 +1,9 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
-import axios, { AxiosError } from "axios"
+import { useState, useRef } from "react"
+import axios from "axios"
 import Link from "next/link"
-import Cookies from "js-cookie"
-import { redirect } from "next/navigation"
 import { useRouter } from "next/navigation"
-
-const validateEmail = (email: string) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return email.trim() ? emailRegex.test(email) : false
-}
-
-const validatePassword = (password: string) => {
-  return password.trim() && password.length >= 6
-}
+import { validateEmail, validatePassword } from "@/utils/validator"
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -29,12 +19,6 @@ export default function SignUp() {
   })
 
   const router = useRouter()
-
-  useEffect(() => {
-    if (Cookies.get("accessToken")) {
-      redirect("/signup/settings")
-    }
-  }, [])
 
   const [loading, setLoading] = useState(false)
   const [showAlert, setShowAlert] = useState(false)
@@ -57,6 +41,7 @@ export default function SignUp() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement | undefined>) => {
     e.preventDefault()
+
     scrollToTop()
     setLoading(true)
 
@@ -80,30 +65,14 @@ export default function SignUp() {
 
     try {
       const data = new FormData(e.currentTarget)
-      await axios.post("/api/signup", data)
-      setShowAlert(true)
-      setTimeout(() => setShowAlert(false), 3000)
-      setTimeout(() => router.push("/signup/settings"), 2000)
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        const axiosError = err as AxiosError
-        let errorMessage = "Something went wrong while sending the request"
-
-        if (axiosError.response) {
-          const responseData = axiosError.response.data
-          if (responseData.error && responseData.error.code === "auth/email-already-in-use") {
-            errorMessage = "Email is already in use. Please use a different email address."
-          } else if (responseData.message) {
-            errorMessage = responseData.message
-          }
-        }
-
-        console.error(axiosError)
-        setError(errorMessage)
-        setTimeout(() => setError(""), 3000)
-      } else {
-        console.error("An unknown error occurred:", err)
+      const response = await axios.post("/api/signup", data)
+      if (response.status === 200) {
+        setShowAlert(true)
+        setTimeout(() => setShowAlert(false), 3000)
+        router.push("/signup/settings")
       }
+    } catch (err) {
+      setTimeout(() => setError(""), 3000)
     }
     setLoading(false)
   }
@@ -150,6 +119,7 @@ export default function SignUp() {
             name="email"
             value={email}
             onChange={handleChange}
+            required
             className={`w-full border-4 rounded text-black ${
               emailError ? "border-red-400" : "border-gray-500"
             } p-4`}
@@ -166,6 +136,7 @@ export default function SignUp() {
             placeholder="Password"
             value={password}
             onChange={handleChange}
+            required
             className={`w-full border-4 rounded text-black  ${
               passwordError ? "border-red-400" : "border-gray-500"
             } p-4`}
@@ -183,6 +154,7 @@ export default function SignUp() {
             placeholder="Password"
             value={confirmPassword}
             onChange={handleChange}
+            required
             className={`w-full border-4 rounded text-black ${
               confirmPasswordError ? "border-red-400" : "border-gray-500"
             } p-4`}

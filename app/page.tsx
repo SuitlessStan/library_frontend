@@ -3,23 +3,18 @@
 import Link from "next/link"
 import CyclingBackground from "@/components/cyclingBackground/cyclingBackground"
 import Navbar from "./navbar"
-import { useState, useEffect } from "react"
-import Cookies from "js-cookie"
+import { useAuthState } from "react-firebase-hooks/auth"
+import firebaseApp from "@/firebase/config"
+import { getAuth } from "firebase/auth"
+
+const auth = getAuth(firebaseApp)
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, error] = useAuthState(auth)
 
-  useEffect(() => {
-    if (Cookies.get("accessToken")) {
-      setIsLoggedIn(true)
-    }
-  }, [])
-
-  return (
-    <>
-      <CyclingBackground />
-      <Navbar />
-      {!isLoggedIn && (
+  const renderAuthLinks = () => {
+    if (!user) {
+      return (
         <div className="flex flex-col justify-center items-center px-4 z-10 relative top-60 text-center">
           <h1 className="text-4xl mt-10 font-Roboto">Virtual Library</h1>
           <span className="text-2xl font-Roboto shadow-sm mb-5 italic">
@@ -36,7 +31,15 @@ export default function Home() {
             Already a member
           </Link>
         </div>
-      )}
+      )
+    }
+  }
+
+  return (
+    <>
+      <CyclingBackground />
+      <Navbar />
+      {renderAuthLinks()}
     </>
   )
 }

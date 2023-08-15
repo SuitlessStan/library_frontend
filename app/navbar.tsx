@@ -2,17 +2,26 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Cookies from "js-cookie"
 import Image from "next/image"
+import { signOut, getAuth } from "firebase/auth"
+import firebaseApp from "@/firebase/config"
+import { useAuthState } from "react-firebase-hooks/auth"
+
+const auth = getAuth(firebaseApp)
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(false)
   const [mode, setMode] = useState<string>()
-  const isLoggedIn = !!Cookies.get("accessToken")
+
+  const [user] = useAuthState(auth)
 
   const handleLinkClick = () => {
     setOpen(false)
+  }
+
+  const logout = () => {
+    signOut(auth)
   }
 
   useEffect(() => {
@@ -36,7 +45,7 @@ export default function Navbar() {
   }, [])
 
   const renderAuthLinks = () => {
-    if (isLoggedIn) {
+    if (user) {
       return (
         <div className="flex flex-col items-center md:order-2">
           <button
@@ -59,12 +68,14 @@ export default function Navbar() {
           <div
             className={`z-50 my-4 ${
               shown ? "" : "hidden"
-            } absolute right-0 top-12 md:right-12 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
+            } absolute top-12 right-0 md:top-10 md:right-20 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
             id="user-dropdown">
             <div className="px-4 py-3">
-              <span className="block text-sm text-gray-900 dark:text-white">Issam Olwan</span>
+              <span className="block text-sm text-gray-900 dark:text-white">
+                {user.displayName}
+              </span>
               <span className="block truncate text-sm text-gray-500 dark:text-gray-400">
-                lands.of.48@gmail.com
+                {user.email}
               </span>
             </div>
             <ul className="py-2" aria-labelledby="user-menu-button">
@@ -78,6 +89,7 @@ export default function Navbar() {
               <li>
                 <Link
                   href="/logout"
+                  onClick={logout}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-white">
                   Sign out
                 </Link>
@@ -136,7 +148,7 @@ export default function Navbar() {
           className={`${open ? "block" : "hidden"} w-full md:block md:w-auto`}
           id="default-navbar">
           <ul className="font-medium flex flex-col md:flex-row mt-5 rounded-lg text-center md:space-x-8 md:mt-0 border-gray-700">
-            {!isLoggedIn && (
+            {!user && (
               <>
                 <li>
                   <Link

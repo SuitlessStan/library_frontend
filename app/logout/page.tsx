@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect } from "react"
-import Cookies from "js-cookie"
 import axios from "axios"
 import { useRouter } from "next/navigation"
 
@@ -13,7 +12,6 @@ export default function Logout() {
       try {
         const response = await axios.post("/api/logout")
         if (response.status == 200) {
-          Cookies.remove("accessToken")
           setTimeout(() => router.push("/"), 2000)
         }
       } catch (err) {

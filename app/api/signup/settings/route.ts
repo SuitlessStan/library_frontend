@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from "next/server"
-// import { getAuth } from "firebase/auth"
+import { getAuth } from "firebase/auth"
 import firebase from "firebase/compat/app"
 import "firebase/compat/firestore"
 import initFirebase from "@/firebase/config"
+import { useAuthState } from "react-firebase-hooks/auth"
 
 initFirebase()
 const db = firebase.firestore()
@@ -13,6 +14,7 @@ export async function POST(request: NextRequest, response: NextResponse) {
   const name = formData.get("name")
 
   const formDataObject: { [key: string]: FormDataEntryValue | null } = {}
+
   for (const [key, value] of formData.entries()) {
     formDataObject[key] = value
   }
