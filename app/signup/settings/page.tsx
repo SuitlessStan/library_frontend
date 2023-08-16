@@ -1,12 +1,16 @@
 "use client"
 
 import React, { useState, ChangeEvent, FormEvent, useEffect } from "react"
-import axios from "axios"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { getAuth } from "firebase/auth"
 import firebaseApp from "@/firebase/config"
 import { useAuthState } from "react-firebase-hooks/auth"
+import firebase from "firebase/compat/app"
+import "firebase/compat/firestore"
+import { db, storage } from "@/firebase/config"
+import { collection, addDoc } from "firebase/firestore"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 
 const auth = getAuth(firebaseApp)
 
@@ -57,8 +61,26 @@ export default function UserSettings() {
     setLoading(true)
 
     try {
-      const data = new FormData(event.currentTarget)
-      await axios.post("/api/signup/settings", data)
+      if (formData.profilePicture) {
+        const storageRef = ref(storage, `profilePictures/${formData.profilePicture.name}`)
+        await uploadBytes(storageRef, formData.profilePicture)
+
+        const downloadURL = await getDownloadURL(storageRef)
+
+        const docRef = await addDoc(collection(db, "users"), {
+          name: formData.name,
+          profilePictureURL: downloadURL,
+          age: formData.age,
+          gender: formData.gender,
+          dateOfBirth: formData.dateOfBirth,
+        })
+        console.log("document written with ID ", docRef.id)
+      } else {
+        const docRef = await addDoc(collection(db, "users"), {
+          data: formData,
+        })
+        console.log("document without profile picture written with ID ", docRef.id)
+      }
     } catch (err) {
       console.error(err)
     }
