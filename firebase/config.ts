@@ -12,8 +12,8 @@ export const db = getFirestore(firebaseApp)
 export const storage = getStorage(firebaseApp)
 export const auth = getAuth(firebaseApp)
 
-setPersistence(auth, browserSessionPersistence)
-  .then(() => console.log("Auth persistence set successfully"))
-  .catch((err) => console.error("Error setting auth persistence ", err))
+setPersistence(auth, browserSessionPersistence).catch((err) =>
+  console.error("Error setting auth persistence ", err)
+)
 
 export default firebaseApp

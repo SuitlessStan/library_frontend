@@ -2,7 +2,6 @@
 import { useRouter } from "next/navigation"
 
 import { useState, useRef } from "react"
-import axios from "axios"
 import Link from "next/link"
 import { validateEmail, validatePassword } from "@/utils/validator"
 import { signIn } from "@/firebase/auth/user"

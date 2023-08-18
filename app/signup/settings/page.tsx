@@ -38,14 +38,10 @@ export default function UserSettings() {
   })
 
   useEffect(() => {
-    let currentUser
-    setTimeout(() => {
-      currentUser = user
-      if (!currentUser) {
-        router.push("/login")
-        return
-      }
-    }, 1000)
+    if (!user) {
+      router.push("/login")
+      return
+    }
 
     const fetchLatestUserSettings = async () => {
       try {
@@ -60,13 +56,13 @@ export default function UserSettings() {
 
         if (!querySnapshot.empty) {
           const userDoc = querySnapshot.docs[0].data()
-          setFormData({
+          setFormData((prevFormData) => ({
             name: userDoc.name,
             age: userDoc.age,
             gender: userDoc.gender,
             dateOfBirth: userDoc.dateOfBirth,
-            profilePicture: userDoc.profilePictureURL ? userDoc.profilePictureURL : null,
-          })
+            profilePicture: userDoc.profilePictureURL || prevFormData.profilePicture,
+          }))
         }
       } catch (err) {
         console.error("Error fetching user settings:", err)

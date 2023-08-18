@@ -4,13 +4,16 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { signOut } from "firebase/auth"
-import { auth } from "@/firebase/config"
+import { auth, db } from "@/firebase/config"
 import { useAuthState } from "react-firebase-hooks/auth"
+import { DocumentData, collection, getDocs, limit, orderBy, query, where } from "firebase/firestore"
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(false)
   const [mode, setMode] = useState<string>()
+  const [imageKey, setImageKey] = useState(0)
+  const [userData, setUserData] = useState<DocumentData | null>(null)
   const dropDownRef = useRef(null)
 
   const [user] = useAuthState(auth)
@@ -52,8 +55,32 @@ export default function Navbar() {
     }
   }, [])
 
+  useEffect(() => {
+    async function getLatestUserData() {
+      try {
+        const usersCollection = collection(db, "users")
+        const userQuery = query(
+          usersCollection,
+          where("uid", "==", user.uid),
+          orderBy("timestamp", "desc"),
+          limit(1)
+        )
+        const querySnapshot = await getDocs(userQuery)
+        if (!querySnapshot.empty) {
+          setUserData(querySnapshot.docs[0].data())
+        }
+        setImageKey((prev) => prev + 1)
+      } catch (err) {
+        console.error("Error fetching user settings:", err)
+      }
+    }
+
+    getLatestUserData()
+  }, [user])
+
   const renderAuthLinks = () => {
-    if (user) {
+    if (user && userData) {
+      const { name, profilePictureURL } = userData
       return (
         <div className="flex flex-col items-center md:order-2">
           <button
@@ -61,13 +88,15 @@ export default function Navbar() {
             className="mr-3 flex rounded-full bg-gray-800 text-sm focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 md:mr-0"
             id="user-menu-button"
             aria-expanded={shown}
+            ref={dropDownRef}
             onClick={(e) => setShown(!shown)}
             data-dropdown-toggle="user-dropdown"
             data-dropdown-placement="bottom">
             <span className="sr-only">Open user menu</span>
             <Image
+              key={imageKey}
               className="h-8 w-8 rounded-full"
-              src="/images/profile_picture.png"
+              src={profilePictureURL ? profilePictureURL : null}
               alt="user photo"
               width={100}
               height={100}
@@ -80,9 +109,7 @@ export default function Navbar() {
             } absolute top-12 right-0 md:top-10 md:right-20 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
             id="user-dropdown">
             <div className="px-4 py-3">
-              <span className="block text-sm text-gray-900 dark:text-white">
-                {user.displayName}
-              </span>
+              <span className="block text-sm text-gray-900 dark:text-white">{name}</span>
               <span className="block truncate text-sm text-gray-500 dark:text-gray-400">
                 {user.email}
               </span>

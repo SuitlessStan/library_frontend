@@ -3,6 +3,8 @@
 import { useEffect } from "react"
 import axios from "axios"
 import { useRouter } from "next/navigation"
+import { signOut } from "firebase/auth"
+import { auth } from "@/firebase/config"
 
 export default function Logout() {
   const router = useRouter()
@@ -11,6 +13,7 @@ export default function Logout() {
     async function SignOut() {
       try {
         const response = await axios.post("/api/logout")
+        await signOut(auth)
         if (response.status == 200) {
           setTimeout(() => router.push("/"), 2000)
         }
