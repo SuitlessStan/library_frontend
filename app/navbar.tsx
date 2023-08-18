@@ -1,18 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { signOut, getAuth } from "firebase/auth"
-import firebaseApp from "@/firebase/config"
+import { signOut } from "firebase/auth"
+import { auth } from "@/firebase/config"
 import { useAuthState } from "react-firebase-hooks/auth"
-
-const auth = getAuth(firebaseApp)
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(false)
   const [mode, setMode] = useState<string>()
+  const dropDownRef = useRef(null)
 
   const [user] = useAuthState(auth)
 
@@ -35,11 +34,20 @@ export default function Navbar() {
       setMode(colorScheme)
     }
 
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropDownRef.current && !dropDownRef.current.contains(event.target as Node)) {
+        setShown(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener("change", handleChange)
     }
 
     return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
       mediaQuery.removeEventListener("change", handleChange)
     }
   }, [])
@@ -66,6 +74,7 @@ export default function Navbar() {
             />
           </button>
           <div
+            ref={dropDownRef}
             className={`z-50 my-4 ${
               shown ? "" : "hidden"
             } absolute top-12 right-0 md:top-10 md:right-20 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}

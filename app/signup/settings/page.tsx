@@ -5,9 +5,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import "firebase/compat/firestore"
 import { useAuthState } from "react-firebase-hooks/auth"
-import { getAuth } from "firebase/auth"
-import firebaseApp from "@/firebase/config"
-import { db, storage } from "@/firebase/config"
+import { db, storage, auth } from "@/firebase/config"
 import {
   collection,
   addDoc,
@@ -20,9 +18,8 @@ import {
 } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faUpload } from "@fortawesome/free-solid-svg-icons"
-
-const auth = getAuth(firebaseApp)
+import { faUpload, faLeftLong } from "@fortawesome/free-solid-svg-icons"
+import { scrollToTop } from "@/utils/helpers"
 
 export default function UserSettings() {
   const [loading, setLoading] = useState(false)
@@ -41,10 +38,14 @@ export default function UserSettings() {
   })
 
   useEffect(() => {
-    if (!user) {
-      router.push("/login")
-      return
-    }
+    let currentUser
+    setTimeout(() => {
+      currentUser = user
+      if (!currentUser) {
+        router.push("/login")
+        return
+      }
+    }, 1000)
 
     const fetchLatestUserSettings = async () => {
       try {
@@ -76,10 +77,6 @@ export default function UserSettings() {
 
     fetchLatestUserSettings()
   }, [router, user])
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
-  }
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target
@@ -181,13 +178,16 @@ export default function UserSettings() {
           </div>
         )}
       </div>
-      <h1 className="text-2xl md:text-4xl my-4 block text-center relative bottom-20">
+      <h1 className="text-2xl md:text-4xl my-4 block text-center relative bottom-14">
         Fill in your information
       </h1>
+      <div className="mx-auto flex justify-center items-center relative bottom-10 cursor-pointer">
+        <FontAwesomeIcon onClick={() => router.back()} icon={faLeftLong} size="2xl" />
+      </div>
       <div className="grid grid-cols-12 w-full">
         <div className="col-span-5 md:col-span-12">
           <div className="mx-auto text-center flex flex-col md:justify-center md:items-center gap-2">
-            <label htmlFor="profilePicture" className="text-lg md:text-xl">
+            <label htmlFor="profilePicture" className="text-lg md:text-xl text-center p-1">
               Profile Picture
             </label>
             <label className="w-1/6">
@@ -203,6 +203,7 @@ export default function UserSettings() {
               <div className="w-40 h-40 rounded-full border overflow-hidden inline-block">
                 {formData.profilePicture ? (
                   <Image
+                    priority
                     src={
                       typeof formData.profilePicture == "object"
                         ? URL.createObjectURL(formData.profilePicture)
@@ -215,13 +216,6 @@ export default function UserSettings() {
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-700 flex justify-center items-center cursor-pointer">
-                    {/* <Image
-                      src="/images/profile_picture_user.png"
-                      alt="profile_picture"
-                      width={150}
-                      height={150}
-                      className="rounded z-10"
-                    /> */}
                     <FontAwesomeIcon className="fa-2xl" icon={faUpload} />
                   </div>
                 )}
@@ -231,7 +225,7 @@ export default function UserSettings() {
         </div>
         <div className="col-span-7 md:col-span-12">
           <div className="flex flex-col gap-2 md:justify-center md:items-center">
-            <label htmlFor="name" className="text-lg md:text-xl text-left">
+            <label htmlFor="name" className="text-lg md:text-xl text-left p-1">
               Your name
             </label>
             <input
@@ -244,7 +238,7 @@ export default function UserSettings() {
             />
           </div>
           <div className="flex flex-col gap-2 md:justify-center md:items-center">
-            <label htmlFor="age" className="text-lg md:text-xl">
+            <label htmlFor="age" className="text-lg md:text-xl text-left p-1">
               Your age
             </label>
             <select
@@ -263,7 +257,7 @@ export default function UserSettings() {
         </div>
         <div className="col-span-12">
           <div className="flex flex-col gap-2 md:justify-center md:items-center">
-            <label htmlFor="gender" className="text-lg md:text-xl">
+            <label htmlFor="gender" className="text-lg md:text-xl text-left p-1">
               Your gender
             </label>
             <select
@@ -280,7 +274,7 @@ export default function UserSettings() {
             </select>
           </div>
           <div className="flex flex-col gap-2 md:justify-center md:items-center">
-            <label htmlFor="dateOfBirth" className="text-lg md:text-xl">
+            <label htmlFor="dateOfBirth" className="text-lg md:text-xl text-left p-1">
               Your date of birth
             </label>
             <input
