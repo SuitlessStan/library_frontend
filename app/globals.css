@@ -37,6 +37,10 @@ body {
   border-top: 3px solid #007bff; /* Replace with your desired progress bar color */
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 @keyframes spin {
@@ -46,4 +50,11 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.user-update {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
