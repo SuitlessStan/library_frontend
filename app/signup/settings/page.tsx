@@ -15,11 +15,24 @@ import {
   where,
   getDocs,
   serverTimestamp,
+  updateDoc,
+  FieldValue,
+  doc,
 } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faUpload, faLeftLong } from "@fortawesome/free-solid-svg-icons"
 import { scrollToTop } from "@/utils/helpers"
+
+type UserData = {
+  uid: string
+  name: string
+  age: string
+  gender: string
+  dateOfBirth: string
+  timestamp: FieldValue
+  profilePictureURL?: string | null | File // Optional for profile picture URL
+}
 
 export default function UserSettings() {
   const [loading, setLoading] = useState(false)
@@ -31,7 +44,7 @@ export default function UserSettings() {
 
   const [formData, setFormData] = useState({
     name: "",
-    profilePicture: null as File | null,
+    profilePictureURL: null as File | null,
     age: "",
     gender: "",
     dateOfBirth: "",
@@ -61,7 +74,7 @@ export default function UserSettings() {
             age: userDoc.age,
             gender: userDoc.gender,
             dateOfBirth: userDoc.dateOfBirth,
-            profilePicture: userDoc.profilePictureURL || prevFormData.profilePicture,
+            profilePictureURL: userDoc.profilePictureURL || prevFormData.profilePictureURL,
           }))
         }
       } catch (err) {
@@ -86,7 +99,7 @@ export default function UserSettings() {
     if (event.target.files && event.target.files.length > 0) {
       setFormData({
         ...formData,
-        profilePicture: event.target.files[0],
+        profilePictureURL: event.target.files[0],
       })
     }
   }
@@ -97,42 +110,82 @@ export default function UserSettings() {
     setLoading(true)
 
     try {
-      if (formData.profilePicture) {
-        const storageRef = ref(storage, `profilePictures/${formData.profilePicture.name}`)
-        await uploadBytes(storageRef, formData.profilePicture)
+      const usersCollection = collection(db, "users")
+      const userQuery = query(usersCollection, where("uid", "==", user?.uid))
+      const querySnapshot = await getDocs(userQuery)
 
-        const downloadURL = await getDownloadURL(storageRef)
+      // if a document already exists
+      if (!querySnapshot.empty) {
+        const existingUserDoc = querySnapshot.docs[0]
+        const existingUserData = existingUserDoc.data() as UserData
+        console.log("existing user data looks like this ", existingUserData)
 
-        await addDoc(collection(db, "users"), {
-          uid: user?.uid,
+        let updateData: UserData
+        if (existingUserData.profilePictureURL) {
+          updateData = {
+            uid: user?.uid as string,
+            name: formData.name,
+            age: formData.age,
+            gender: formData.gender,
+            dateOfBirth: formData.dateOfBirth,
+            timestamp: serverTimestamp(),
+            profilePictureURL: existingUserData.profilePictureURL,
+          }
+        }
+        updateData = {
+          uid: user?.uid as string,
           name: formData.name,
-          profilePictureURL: downloadURL,
           age: formData.age,
           gender: formData.gender,
           dateOfBirth: formData.dateOfBirth,
           timestamp: serverTimestamp(),
-        })
-      }
-      if (!formData.profilePicture) {
-        await addDoc(collection(db, "users"), {
-          uid: user?.uid,
+        }
+
+        if (formData.profilePictureURL && !existingUserData.profilePictureURL) {
+          const storageRef = ref(storage, `profilePictures/${formData.profilePictureURL.name}`)
+          await uploadBytes(storageRef, formData.profilePictureURL)
+          const downloadURL = await getDownloadURL(storageRef)
+          updateData.profilePictureURL = downloadURL
+        }
+
+        // Check if any fields are different from existing data
+        const fieldsChanged = Object.keys(updateData).some(
+          (key) => updateData[key as keyof UserData] !== existingUserData[key as keyof UserData]
+        )
+
+        if (fieldsChanged) {
+          await updateDoc(existingUserDoc.ref, updateData)
+        }
+      } else {
+        // if no documents with those entries have been entered
+        const newUserData: UserData = {
+          uid: user?.uid as string,
           name: formData.name,
           age: formData.age,
           gender: formData.gender,
           dateOfBirth: formData.dateOfBirth,
+          profilePictureURL: "",
           timestamp: serverTimestamp(),
-        })
-      }
+        }
 
-      setTimeout(() => setShowAlert(true), 3000)
+        if (formData.profilePictureURL) {
+          const storageRef = ref(storage, `profilePictures/${formData.profilePictureURL.name}`)
+          await uploadBytes(storageRef, formData.profilePictureURL)
+          const downloadURL = await getDownloadURL(storageRef)
+          newUserData.profilePictureURL = downloadURL
+        }
+
+        await addDoc(usersCollection, newUserData)
+      }
     } catch (err) {
       console.error(err)
       setTimeout(() => setError(err as string), 3000)
     }
+
     setLoading(false)
     setShowAlert(false)
     setError("")
-    router.push("/")
+    setTimeout(() => router.push("/"), 3000)
   }
 
   const ageOptions = Array.from({ length: 89 }, (_, index) => 12 + index) // Ages from 12 to 100
@@ -197,13 +250,13 @@ export default function UserSettings() {
                 onChange={handleProfilePictureChange}
               />
               <div className="w-40 h-40 rounded-full border overflow-hidden inline-block">
-                {formData.profilePicture ? (
+                {formData.profilePictureURL ? (
                   <Image
                     priority
                     src={
-                      typeof formData.profilePicture == "object"
-                        ? URL.createObjectURL(formData.profilePicture)
-                        : `${formData.profilePicture}`
+                      typeof formData.profilePictureURL == "object"
+                        ? URL.createObjectURL(formData.profilePictureURL)
+                        : `${formData.profilePictureURL}`
                     }
                     alt="Profile"
                     className="object-cover cursor-pointer"

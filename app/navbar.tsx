@@ -12,7 +12,6 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(false)
   const [mode, setMode] = useState<string>()
-  const [imageKey, setImageKey] = useState(0)
   const [userData, setUserData] = useState<DocumentData | null>(null)
   const dropDownRef = useRef(null)
 
@@ -61,7 +60,7 @@ export default function Navbar() {
         const usersCollection = collection(db, "users")
         const userQuery = query(
           usersCollection,
-          where("uid", "==", user.uid),
+          where("uid", "==", user?.uid),
           orderBy("timestamp", "desc"),
           limit(1)
         )
@@ -69,7 +68,7 @@ export default function Navbar() {
         if (!querySnapshot.empty) {
           setUserData(querySnapshot.docs[0].data())
         }
-        setImageKey((prev) => prev + 1)
+        console.log(userData)
       } catch (err) {
         console.error("Error fetching user settings:", err)
       }
@@ -79,8 +78,7 @@ export default function Navbar() {
   }, [user])
 
   const renderAuthLinks = () => {
-    if (user && userData) {
-      const { name, profilePictureURL } = userData
+    if (user) {
       return (
         <div className="flex flex-col items-center md:order-2">
           <button
@@ -94,9 +92,8 @@ export default function Navbar() {
             data-dropdown-placement="bottom">
             <span className="sr-only">Open user menu</span>
             <Image
-              key={imageKey}
               className="h-8 w-8 rounded-full"
-              src={profilePictureURL ? profilePictureURL : null}
+              src={userData?.profilePictureURL ? userData?.profilePictureURL : ""}
               alt="user photo"
               width={100}
               height={100}
@@ -106,10 +103,12 @@ export default function Navbar() {
             ref={dropDownRef}
             className={`z-50 my-4 ${
               shown ? "" : "hidden"
-            } absolute top-12 right-0 md:top-10 md:right-20 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
+            } absolute top-12 right-0 md:top-10 md:right-20 lg:top-12 lg:right-60 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
             id="user-dropdown">
             <div className="px-4 py-3">
-              <span className="block text-sm text-gray-900 dark:text-white">{name}</span>
+              <span className="block text-sm text-gray-900 dark:text-white">
+                {userData?.name ? userData?.name : "User"}
+              </span>
               <span className="block truncate text-sm text-gray-500 dark:text-gray-400">
                 {user.email}
               </span>
