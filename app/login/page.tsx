@@ -3,13 +3,17 @@ import { useRouter } from "next/navigation"
 
 import { useState, useRef } from "react"
 import Link from "next/link"
+import { scrollToTop } from "@/utils/helpers"
 import { validateEmail, validatePassword } from "@/utils/validator"
 import { signIn } from "@/firebase/auth/user"
+import { auth } from "@/firebase/config"
+import { browserLocalPersistence, setPersistence } from "firebase/auth"
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    rememberMe: false,
   })
 
   const [formDataError, setFormDataError] = useState({
@@ -24,16 +28,14 @@ export default function SignUp() {
   const ref = useRef(null)
   const router = useRouter()
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
-  }
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value, type, checked } = e.target
+
+    const newValue = type == "checkbox" ? checked : value
 
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: newValue,
     }))
   }
 
@@ -42,7 +44,7 @@ export default function SignUp() {
     setLoading(true)
     scrollToTop()
 
-    const { email, password } = formData
+    const { email, password, rememberMe } = formData
 
     const emailError = !validateEmail(email) ? "Invalid email format" : ""
     const passwordError = !validatePassword(password)
@@ -62,9 +64,27 @@ export default function SignUp() {
     try {
       const response = await signIn(formData.email, formData.password)
 
-      if (response.result) {
-        setTimeout(() => setShowAlert(true), 3000)
-        router.push("/")
+      const { result, error } = response
+      if (result && rememberMe) {
+        await setPersistence(auth, browserLocalPersistence)
+        setShowAlert(true)
+        setTimeout(() => setShowAlert(false), 2000)
+        return router.push("/")
+      }
+      if (result) {
+        setShowAlert(true)
+        setTimeout(() => setShowAlert(false), 2000)
+        return router.push("/")
+      }
+      if (error) {
+        if (error.message == "Firebase: Error (auth/user-not-found).") {
+          setError(`User with entered information doesn't exist`)
+          setTimeout(() => setError(""), 3000)
+        }
+        if (error.message == "Firebase: Error (auth/wrong-password).") {
+          setError("Invalid email or password")
+          setTimeout(() => setError(""), 3000)
+        }
       }
     } catch (err) {
       console.error(err)
@@ -76,22 +96,22 @@ export default function SignUp() {
     setFormData({
       email: "",
       password: "",
+      rememberMe: false,
     })
   }
 
-  const { email, password } = formData
+  const { email, password, rememberMe } = formData
   const { emailError, passwordError } = formDataError
 
   return (
     <>
       <form
-        className="my-40 border rounded flex flex-col mx-auto p-5 w-full md:w-2/5"
+        className="my-40 border rounded flex flex-col mx-auto p-5 w-full md:w-2/6"
         action="/api/login"
         onSubmit={handleSubmit}
         ref={ref}
         method="POST">
         <span className="text-4xl my-4 block">Sign in</span>
-
         <div className="message-progress">
           {loading && <div className="circular-progress"></div>}
           {showAlert && (
@@ -111,7 +131,6 @@ export default function SignUp() {
             </div>
           )}
         </div>
-
         <div className="input my-4 flex flex-col gap-2">
           <label htmlFor="email" className="text-xl">
             Email
@@ -145,6 +164,18 @@ export default function SignUp() {
             } p-4`}
           />
           {passwordError && <span className="text-red-400">{passwordError}</span>}
+        </div>
+        <div className="input my-4 px-4 flex gap-2 items-center">
+          <label htmlFor="Remeber me" className="text-xl">
+            Remeber me
+          </label>
+          <input
+            type="checkbox"
+            name="rememberMe"
+            className="w-4 h-4"
+            checked={rememberMe}
+            onChange={handleChange}
+          />
         </div>
 
         <button

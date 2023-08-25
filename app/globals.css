@@ -22,6 +22,29 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+/* Scrollbar */
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #525151;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 .message-progress {
   position: absolute;
   top: 50%;
@@ -57,4 +80,20 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+#bookModal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Media query for small screens */
+@media (max-width: 768px) {
+  #bookModal {
+    top: 3.6rem; /* Adjust vertical position */
+    left: 0;
+    transform: none;
+  }
 }

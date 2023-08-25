@@ -17,7 +17,6 @@ import {
   serverTimestamp,
   updateDoc,
   FieldValue,
-  doc,
 } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -29,9 +28,9 @@ type UserData = {
   name: string
   age: string
   gender: string
-  dateOfBirth: string
+  philoType: string
   timestamp: FieldValue
-  profilePictureURL?: string | null | File // Optional for profile picture URL
+  profilePictureURL?: string | undefined // Optional for profile picture URL
 }
 
 export default function UserSettings() {
@@ -44,11 +43,12 @@ export default function UserSettings() {
 
   const [formData, setFormData] = useState({
     name: "",
-    profilePictureURL: null as File | null,
+    profilePictureURL: "",
     age: "",
     gender: "",
-    dateOfBirth: "",
+    philoType: "",
   })
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null)
 
   useEffect(() => {
     if (!user) {
@@ -73,9 +73,10 @@ export default function UserSettings() {
             name: userDoc.name,
             age: userDoc.age,
             gender: userDoc.gender,
-            dateOfBirth: userDoc.dateOfBirth,
+            philoType: userDoc.philoType,
             profilePictureURL: userDoc.profilePictureURL || prevFormData.profilePictureURL,
           }))
+          // setProfilePictureFile(userDoc.profilePictureURL)
         }
       } catch (err) {
         console.error("Error fetching user settings:", err)
@@ -97,10 +98,7 @@ export default function UserSettings() {
 
   const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      setFormData({
-        ...formData,
-        profilePictureURL: event.target.files[0],
-      })
+      setProfilePictureFile(event.target.files[0])
     }
   }
 
@@ -118,32 +116,20 @@ export default function UserSettings() {
       if (!querySnapshot.empty) {
         const existingUserDoc = querySnapshot.docs[0]
         const existingUserData = existingUserDoc.data() as UserData
-        console.log("existing user data looks like this ", existingUserData)
 
-        let updateData: UserData
-        if (existingUserData.profilePictureURL) {
-          updateData = {
-            uid: user?.uid as string,
-            name: formData.name,
-            age: formData.age,
-            gender: formData.gender,
-            dateOfBirth: formData.dateOfBirth,
-            timestamp: serverTimestamp(),
-            profilePictureURL: existingUserData.profilePictureURL,
-          }
-        }
-        updateData = {
+        let updateData: UserData = {
           uid: user?.uid as string,
           name: formData.name,
           age: formData.age,
           gender: formData.gender,
-          dateOfBirth: formData.dateOfBirth,
+          philoType: formData.philoType,
           timestamp: serverTimestamp(),
+          profilePictureURL: existingUserData.profilePictureURL,
         }
 
-        if (formData.profilePictureURL && !existingUserData.profilePictureURL) {
-          const storageRef = ref(storage, `profilePictures/${formData.profilePictureURL.name}`)
-          await uploadBytes(storageRef, formData.profilePictureURL)
+        if (profilePictureFile) {
+          const storageRef = ref(storage, `profilePictures/${profilePictureFile.name}`)
+          await uploadBytes(storageRef, profilePictureFile)
           const downloadURL = await getDownloadURL(storageRef)
           updateData.profilePictureURL = downloadURL
         }
@@ -163,14 +149,13 @@ export default function UserSettings() {
           name: formData.name,
           age: formData.age,
           gender: formData.gender,
-          dateOfBirth: formData.dateOfBirth,
-          profilePictureURL: "",
+          philoType: formData.philoType,
           timestamp: serverTimestamp(),
         }
 
-        if (formData.profilePictureURL) {
-          const storageRef = ref(storage, `profilePictures/${formData.profilePictureURL.name}`)
-          await uploadBytes(storageRef, formData.profilePictureURL)
+        if (profilePictureFile) {
+          const storageRef = ref(storage, `profilePictures/${profilePictureFile.name}`)
+          await uploadBytes(storageRef, profilePictureFile)
           const downloadURL = await getDownloadURL(storageRef)
           newUserData.profilePictureURL = downloadURL
         }
@@ -179,17 +164,27 @@ export default function UserSettings() {
       }
     } catch (err) {
       console.error(err)
-      setTimeout(() => setError(err as string), 3000)
+      setError(err as string)
+      setTimeout(() => setError(""), 3000)
     }
 
+    setShowAlert(true)
     setLoading(false)
-    setShowAlert(false)
-    setError("")
     setTimeout(() => router.push("/"), 3000)
   }
 
   const ageOptions = Array.from({ length: 89 }, (_, index) => 12 + index) // Ages from 12 to 100
   const genderOptions = ["Male", "Female"]
+  const characteristicsOfModernPhilosophers = [
+    "Rational",
+    "Empirical",
+    "Idealistic",
+    "Materialistic",
+    "Existential",
+    "Pragmatic",
+    "Phenomenological",
+    "Postmodern",
+  ]
 
   return (
     <form
@@ -322,17 +317,23 @@ export default function UserSettings() {
               ))}
             </select>
           </div>
-          <div className="flex flex-col gap-2 md:justify-center md:items-center">
-            <label htmlFor="dateOfBirth" className="text-lg md:text-xl text-left p-1">
-              Your date of birth
+          <div className="flex flex-col gap-2 md:justify-center md:items-center mt-10">
+            <label htmlFor="philoType" className="text-lg md:text-xl text-left p-1">
+              You best describe yourself as a
             </label>
-            <input
-              type="date"
-              name="dateOfBirth"
+            <select
+              name="philoType"
               className="w-full md:w-1/4 p-2 border-4 rounded text-black border-gray-500"
-              value={formData.dateOfBirth}
+              value={formData.philoType}
               onChange={handleInputChange}
-            />
+              id="philoType">
+              <option value="">Select type</option>
+              {characteristicsOfModernPhilosophers.map((philosopherType) => (
+                <option key={philosopherType} value={philosopherType}>
+                  {philosopherType}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>

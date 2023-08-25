@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import CyclingBackground from "@/components/cyclingBackground/cyclingBackground"
 import Navbar from "./navbar"
@@ -9,8 +10,31 @@ import { getAuth } from "firebase/auth"
 
 const auth = getAuth(firebaseApp)
 
+type Book = {
+  title: string
+  id?: string
+  createAt?: string | Date
+  updatedAt?: string | Date
+  inactiveAt?: string | Date
+  fbUserId: string
+  current_page: number | null
+  total_pages: number | null | undefined
+  author: string
+  cover_url: string
+  review: string
+}
+
 export default function Home() {
   const [user, error] = useAuthState(auth)
+  const [books, setBooks] = useState<Book[]>([])
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState({
+    title: "",
+    fbUserId: user?.uid,
+    current_page: 0,
+    total_pages: null,
+    review: "",
+  })
 
   const renderAuthLinks = () => {
     if (!user) {
@@ -35,10 +59,138 @@ export default function Home() {
     }
   }
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }))
+  }
+
+  const { title, fbUserId, current_page, total_pages, review } = formData
+
   return (
     <>
       <CyclingBackground />
-      <Navbar />
+      <Navbar showForm={showForm} setShowForm={setShowForm} />
+      {showForm && (
+        <div>
+          {/* Main modal */}
+          <div
+            id="bookModal"
+            tabIndex={-1}
+            aria-hidden={showForm}
+            className={`${
+              showForm ? "block" : "hidden"
+            } z-50 p-4 w-full overflow-x-hidden overflow-y-auto`}>
+            <div className="relative w-full max-w-2xl max-h-full">
+              {/* Modal content */}
+              <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                {/* Modal header  */}
+                <div className="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Adding a new book
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={(e) => setShowForm((prev) => !prev)}
+                    className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                    data-modal-hide="bookModal">
+                    <svg
+                      className="w-3 h-3"
+                      aria-hidden={showForm}
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 14 14">
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      />
+                    </svg>
+                    <span className="sr-only">Close modal</span>
+                  </button>
+                </div>
+                {/*  Modal body  */}
+                <div className="p-6 space-y-6">
+                  <div className="input flex flex-col gap-1">
+                    <label htmlFor="title" className="text-md">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Book title"
+                      name="title"
+                      value={title}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border-4 rounded text-black border-gray-500 p-4`}
+                    />
+                  </div>
+                  <div className="input flex flex-col gap-1">
+                    <label htmlFor="current_page" className="text-md">
+                      Current page
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Current page"
+                      name="current_page"
+                      value={current_page}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border-4 rounded text-black border-gray-500 p-4`}
+                    />
+                  </div>
+                  <div className="input flex flex-col gap-1">
+                    <label htmlFor="total_pages" className="text-md">
+                      Pages count
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Current page"
+                      name="total_pages"
+                      value={total_pages ? total_pages : 1000}
+                      onChange={handleChange}
+                      required
+                      className={`w-full border-4 rounded text-black border-gray-500 p-4`}
+                    />
+                  </div>
+                  <div className="input flex flex-col gap-1">
+                    <label htmlFor="review" className="text-md">
+                      Review
+                    </label>
+                    <textarea
+                      placeholder="Review"
+                      name="review"
+                      value={review}
+                      onChange={handleChange}
+                      className="w-full border-4 rounded text-black border-gray-500 p-4"
+                      style={{ height: "10rem", resize: "none" }}></textarea>
+                  </div>
+                </div>
+                {/* Modal footer  */}
+                <div className="flex justify-center items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
+                  <button
+                    data-modal-hide="bookModal"
+                    type="button"
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    Add
+                  </button>
+                  <button
+                    data-modal-hide="bookModal"
+                    type="button"
+                    onClick={(e) => setShowForm(false)}
+                    className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {renderAuthLinks()}
     </>
   )

@@ -7,8 +7,16 @@ import { signOut } from "firebase/auth"
 import { auth, db } from "@/firebase/config"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { DocumentData, collection, getDocs, limit, orderBy, query, where } from "firebase/firestore"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowUpWideShort } from "@fortawesome/free-solid-svg-icons"
 
-export default function Navbar() {
+export default function Navbar({
+  showForm,
+  setShowForm,
+}: {
+  showForm: boolean
+  setShowForm: React.Dispatch<React.SetStateAction<boolean>>
+}) {
   const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(false)
   const [mode, setMode] = useState<string>()
@@ -80,56 +88,68 @@ export default function Navbar() {
   const renderAuthLinks = () => {
     if (user) {
       return (
-        <div className="flex flex-col items-center md:order-2">
-          <button
-            type="button"
-            className="mr-3 flex rounded-full bg-gray-800 text-sm focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 md:mr-0"
-            id="user-menu-button"
-            aria-expanded={shown}
-            ref={dropDownRef}
-            onClick={(e) => setShown(!shown)}
-            data-dropdown-toggle="user-dropdown"
-            data-dropdown-placement="bottom">
-            <span className="sr-only">Open user menu</span>
-            <Image
-              className="h-8 w-8 rounded-full"
-              src={userData?.profilePictureURL ? userData?.profilePictureURL : ""}
-              alt="user photo"
-              width={100}
-              height={100}
-            />
-          </button>
-          <div
-            ref={dropDownRef}
-            className={`z-50 my-4 ${
-              shown ? "" : "hidden"
-            } absolute top-12 right-0 md:top-10 md:right-20 lg:top-12 lg:right-60 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
-            id="user-dropdown">
-            <div className="px-4 py-3">
-              <span className="block text-sm text-gray-900 dark:text-white">
-                {userData?.name ? userData?.name : "User"}
-              </span>
-              <span className="block truncate text-sm text-gray-500 dark:text-gray-400">
-                {user.email}
-              </span>
+        <div className="max-w-screen-xl flex justify-between items-center gap-2 mx-auto p-4">
+          <div id="bookButtons" className="flex gap-3">
+            <button
+              className="border px-2 py-2 border-r-2 rounded"
+              onClick={(e) => setShowForm((prev) => !prev)}>
+              Add new book
+            </button>
+            <button>
+              <FontAwesomeIcon icon={faArrowUpWideShort} size="lg" />
+            </button>
+          </div>
+          <div id="userProfile" className="flex flex-col items-center md:order-2">
+            <button
+              type="button"
+              className="mr-3 flex rounded-full bg-gray-800 text-sm focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600 md:mr-0"
+              id="user-menu-button"
+              aria-expanded={shown}
+              ref={dropDownRef}
+              onClick={(e) => setShown(!shown)}
+              data-dropdown-toggle="user-dropdown"
+              data-dropdown-placement="bottom">
+              <span className="sr-only">Open user menu</span>
+              <Image
+                className="h-8 w-8 rounded-full"
+                src={userData?.profilePictureURL ? userData?.profilePictureURL : ""}
+                alt="user photo"
+                width={100}
+                height={100}
+              />
+            </button>
+            <div
+              ref={dropDownRef}
+              className={`z-50 my-4 ${
+                shown ? "block" : "hidden"
+              } absolute top-14 right-0 md:right-14 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
+              id="user-dropdown">
+              <div className="px-4 py-3">
+                <span className="block text-sm text-gray-900 dark:text-white">
+                  {userData?.name ? userData?.name : "User"}
+                </span>
+                <span className="block truncate text-sm text-gray-500 dark:text-gray-400">
+                  {user.email}
+                </span>
+              </div>
+              <ul className="py-2" aria-labelledby="user-menu-button">
+                <li>
+                  <Link
+                    href="/signup/settings"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-white">
+                    Settings
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/logout"
+                    onClick={logout}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-white">
+                    Sign out
+                  </Link>
+                </li>
+              </ul>
             </div>
-            <ul className="py-2" aria-labelledby="user-menu-button">
-              <li>
-                <Link
-                  href="/signup/settings"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-white">
-                  Settings
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/logout"
-                  onClick={logout}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-white">
-                  Sign out
-                </Link>
-              </li>
-            </ul>
           </div>
         </div>
       )
@@ -140,14 +160,11 @@ export default function Navbar() {
         <button
           data-collapse-toggle="navbar-default"
           type="button"
-          onClick={() => {
-            setOpen(!open)
-          }}
-          className="inline-flex items-center justify-center text-sm h-8 w-8 rounded-lg md:hidden"
+          onClick={() => setOpen((prev) => !prev)}
+          className="inline-flex absolute top-0 right-0 p-1 text-sm h-8 w-8 rounded-lg md:hidden"
           aria-controls="navbar-default"
-          aria-expanded={open ? "true" : "false"}>
-          <span className="sr-only">Open main menu</span>
-          {!open ? (
+          aria-expanded={open}>
+          {!open && (
             <svg
               width="24"
               height="24"
@@ -162,7 +179,8 @@ export default function Navbar() {
                 strokeLinejoin="round"
               />
             </svg>
-          ) : (
+          )}
+          {open && (
             <svg
               width="22"
               height="24"
@@ -182,7 +200,7 @@ export default function Navbar() {
         <div
           className={`${open ? "block" : "hidden"} w-full md:block md:w-auto`}
           id="default-navbar">
-          <ul className="font-medium flex flex-col md:flex-row mt-5 rounded-lg text-center md:space-x-8 md:mt-0 border-gray-700">
+          <ul className="font-medium flex flex-col md:flex-row md:py-4 md:mx-4 mt-5 rounded-lg text-center md:space-x-8 md:mt-0 border-gray-700">
             {!user && (
               <>
                 <li>
@@ -211,9 +229,7 @@ export default function Navbar() {
 
   return (
     <nav className="dark:bg-black bg-white fixed w-full z-10 top-0 opacity-75">
-      <div className="max-w-screen-xl flex flex-wrap justify-end gap-2 mx-auto p-4">
-        {renderAuthLinks()}
-      </div>
+      {renderAuthLinks()}
     </nav>
   )
 }

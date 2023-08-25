@@ -10,7 +10,7 @@ export async function signUp(email: string, password: string) {
   try {
     result = await createUserWithEmailAndPassword(auth, email, password)
   } catch (err) {
-    error = err
+    error = err as Error
   }
   return { result, error }
 }
@@ -18,11 +18,10 @@ export async function signUp(email: string, password: string) {
 export async function signIn(email: string, password: string) {
   let result,
     error = null
-
   try {
     result = await signInWithEmailAndPassword(auth, email, password)
   } catch (err) {
-    error = err
+    error = err as Error
   }
   return { result, error }
 }
