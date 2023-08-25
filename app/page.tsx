@@ -27,7 +27,11 @@ type Book = {
 export default function Home() {
   const [user, error] = useAuthState(auth)
   const [books, setBooks] = useState<Book[]>([])
-  const [showForm, setShowForm] = useState(false)
+  const [modalStatus, setModalStatus] = useState({
+    showForm: false,
+    showOverlay: false,
+  })
+
   const [formData, setFormData] = useState({
     title: "",
     fbUserId: user?.uid,
@@ -68,11 +72,12 @@ export default function Home() {
   }
 
   const { title, fbUserId, current_page, total_pages, review } = formData
+  const { showForm, showOverlay } = modalStatus
 
   return (
     <>
       <CyclingBackground />
-      <Navbar showForm={showForm} setShowForm={setShowForm} />
+      <Navbar setModalStatus={setModalStatus} />
       {showForm && (
         <div>
           {/* Main modal */}
@@ -82,18 +87,23 @@ export default function Home() {
             aria-hidden={showForm}
             className={`${
               showForm ? "block" : "hidden"
-            } z-50 p-4 w-full overflow-x-hidden overflow-y-auto`}>
-            <div className="relative w-full max-w-2xl max-h-full">
+            } z-50 p-4 w-full md:w-1/3 overflow-x-hidden overflow-y-auto`}>
+            <div className="relative ">
               {/* Modal content */}
               <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
                 {/* Modal header  */}
                 <div className="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    Adding a new book
+                    Add a new book
                   </h3>
                   <button
                     type="button"
-                    onClick={(e) => setShowForm((prev) => !prev)}
+                    onClick={(e) =>
+                      setModalStatus((prevModalStatus) => ({
+                        showForm: !prevModalStatus.showForm,
+                        showOverlay: !prevModalStatus.showOverlay,
+                      }))
+                    }
                     className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                     data-modal-hide="bookModal">
                     <svg
@@ -115,60 +125,62 @@ export default function Home() {
                 </div>
                 {/*  Modal body  */}
                 <div className="p-6 space-y-6">
-                  <div className="input flex flex-col gap-1">
-                    <label htmlFor="title" className="text-md">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Book title"
-                      name="title"
-                      value={title}
-                      onChange={handleChange}
-                      required
-                      className={`w-full border-4 rounded text-black border-gray-500 p-4`}
-                    />
-                  </div>
-                  <div className="input flex flex-col gap-1">
-                    <label htmlFor="current_page" className="text-md">
-                      Current page
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="Current page"
-                      name="current_page"
-                      value={current_page}
-                      onChange={handleChange}
-                      required
-                      className={`w-full border-4 rounded text-black border-gray-500 p-4`}
-                    />
-                  </div>
-                  <div className="input flex flex-col gap-1">
-                    <label htmlFor="total_pages" className="text-md">
-                      Pages count
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="Current page"
-                      name="total_pages"
-                      value={total_pages ? total_pages : 1000}
-                      onChange={handleChange}
-                      required
-                      className={`w-full border-4 rounded text-black border-gray-500 p-4`}
-                    />
-                  </div>
-                  <div className="input flex flex-col gap-1">
-                    <label htmlFor="review" className="text-md">
-                      Review
-                    </label>
-                    <textarea
-                      placeholder="Review"
-                      name="review"
-                      value={review}
-                      onChange={handleChange}
-                      className="w-full border-4 rounded text-black border-gray-500 p-4"
-                      style={{ height: "10rem", resize: "none" }}></textarea>
-                  </div>
+                  <form action="">
+                    <div className="input flex flex-col my-3 gap-1">
+                      <label htmlFor="title" className="text-md">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Book title"
+                        name="title"
+                        value={title}
+                        onChange={handleChange}
+                        required
+                        className={`w-full border-4 rounded text-black border-gray-500 p-3`}
+                      />
+                    </div>
+                    <div className="input flex flex-col my-3 gap-1">
+                      <label htmlFor="current_page" className="text-md">
+                        Current page
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="Current page"
+                        name="current_page"
+                        value={current_page}
+                        onChange={handleChange}
+                        required
+                        className={`w-full border-4 rounded text-black border-gray-500 p-3`}
+                      />
+                    </div>
+                    <div className="input flex flex-col my-3 gap-1">
+                      <label htmlFor="total_pages" className="text-md">
+                        Pages count
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="Current page"
+                        name="total_pages"
+                        value={total_pages ? total_pages : 1000}
+                        onChange={handleChange}
+                        required
+                        className={`w-full border-4 rounded text-black border-gray-500 p-3`}
+                      />
+                    </div>
+                    <div className="input flex flex-col my-3 gap-1">
+                      <label htmlFor="review" className="text-md">
+                        Review
+                      </label>
+                      <textarea
+                        placeholder="Review"
+                        name="review"
+                        value={review}
+                        onChange={handleChange}
+                        className="w-full border-4 rounded text-black border-gray-500 p-3"
+                        style={{ height: "10rem", resize: "none" }}></textarea>
+                    </div>
+                  </form>
                 </div>
                 {/* Modal footer  */}
                 <div className="flex justify-center items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
@@ -181,7 +193,12 @@ export default function Home() {
                   <button
                     data-modal-hide="bookModal"
                     type="button"
-                    onClick={(e) => setShowForm(false)}
+                    onClick={(e) =>
+                      setModalStatus((prevModalStatus) => ({
+                        showForm: false,
+                        showOverlay: false,
+                      }))
+                    }
                     className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
                     Cancel
                   </button>
@@ -191,6 +208,8 @@ export default function Home() {
           </div>
         </div>
       )}
+      {showOverlay && <div className="overlay"></div>}
+
       {renderAuthLinks()}
     </>
   )

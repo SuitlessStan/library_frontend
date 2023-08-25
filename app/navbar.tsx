@@ -8,14 +8,12 @@ import { auth, db } from "@/firebase/config"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { DocumentData, collection, getDocs, limit, orderBy, query, where } from "firebase/firestore"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowUpWideShort } from "@fortawesome/free-solid-svg-icons"
+import { faArrowUpWideShort, faArrowUpZA } from "@fortawesome/free-solid-svg-icons"
 
 export default function Navbar({
-  showForm,
-  setShowForm,
+  setModalStatus,
 }: {
-  showForm: boolean
-  setShowForm: React.Dispatch<React.SetStateAction<boolean>>
+  setModalStatus: React.Dispatch<React.SetStateAction<{ showForm: boolean; showOverlay: boolean }>>
 }) {
   const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(false)
@@ -91,12 +89,20 @@ export default function Navbar({
         <div className="max-w-screen-xl flex justify-between items-center gap-2 mx-auto p-4">
           <div id="bookButtons" className="flex gap-3">
             <button
-              className="border px-2 py-2 border-r-2 rounded"
-              onClick={(e) => setShowForm((prev) => !prev)}>
+              className="border px-2 py-2 rounded"
+              onClick={(e) =>
+                setModalStatus((prevModalStatus) => ({
+                  showForm: !prevModalStatus.showForm,
+                  showOverlay: !prevModalStatus.showOverlay,
+                }))
+              }>
               Add new book
             </button>
             <button>
               <FontAwesomeIcon icon={faArrowUpWideShort} size="lg" />
+            </button>
+            <button>
+              <FontAwesomeIcon icon={faArrowUpZA} size="lg" />
             </button>
           </div>
           <div id="userProfile" className="flex flex-col items-center md:order-2">
@@ -122,7 +128,7 @@ export default function Navbar({
               ref={dropDownRef}
               className={`z-50 my-4 ${
                 shown ? "block" : "hidden"
-              } absolute top-14 right-0 md:right-14 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
+              } absolute top-14 right-0 md:right-14 xl:right-64 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
               id="user-dropdown">
               <div className="px-4 py-3">
                 <span className="block text-sm text-gray-900 dark:text-white">

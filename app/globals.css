@@ -92,8 +92,18 @@ body {
 /* Media query for small screens */
 @media (max-width: 768px) {
   #bookModal {
-    top: 3.6rem; /* Adjust vertical position */
+    top: 5rem; /* Adjust vertical position */
     left: 0;
     transform: none;
   }
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Adjust the alpha value to control the opacity */
+  z-index: 40; /* Make sure the overlay is above other content */
 }
