@@ -1,12 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import axios from "axios"
 import Link from "next/link"
 import CyclingBackground from "@/components/cyclingBackground/cyclingBackground"
 import Navbar from "./navbar"
 import { useAuthState } from "react-firebase-hooks/auth"
 import firebaseApp from "@/firebase/config"
 import { getAuth } from "firebase/auth"
+import { apiUrl } from "@/firebase/config"
+import { useRouter } from "next/router"
+import Image from "next/image"
+import Book from "@/components/book/book"
 
 const auth = getAuth(firebaseApp)
 
@@ -23,6 +28,8 @@ type Book = {
   cover_url: string
   review: string
 }
+
+const url = "https://2286-213-6-168-107.ngrok-free.app/v1/"
 
 export default function Home() {
   const [user, error] = useAuthState(auth)
@@ -70,6 +77,28 @@ export default function Home() {
       [name]: value,
     }))
   }
+
+  useEffect(() => {
+    const fetchUserBooks = async () => {
+      try {
+        const token = await user?.getIdToken(true)
+        const requestConfig = {
+          headers: {
+            authentication: token,
+          },
+        }
+        const response = await axios.get(`api/books/${user?.uid}`, requestConfig)
+        if (response.status == 200) {
+          const results = response.data.result.results
+          // setBooks(response.data.result)
+          console.log(results)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchUserBooks()
+  }, [user])
 
   const { title, fbUserId, current_page, total_pages, review } = formData
   const { showForm, showOverlay } = modalStatus
@@ -211,6 +240,32 @@ export default function Home() {
       {showOverlay && <div className="overlay"></div>}
 
       {renderAuthLinks()}
+      <div id="bookDisplay" className="absolute top-20 grid grid-cols-12 px-4">
+        <div className="col-span-12 md:col-span-12">
+          {/* <div className="max-w-sm rounded overflow shadow-lg text-center">
+            <Image
+              width={200}
+              height={200}
+              className="w-full"
+              src="https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png"
+              alt="Sunset in the mountains"
+            />
+            <div className="px-6 py-4">
+              <div className="font-bold text-2xl mb-2">
+                Crime and Punishment <span className="inline-block text-sm">Fyodor Dostoevsky</span>
+              </div>
+              <p className="text-base">
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatibus quia, nulla!
+                Maiores et perferendis eaque, exercitationem praesentium nihil.
+                <span>
+                  <input type="text" name="review" id="review" />
+                </span>
+              </p>
+            </div>
+          </div> */}
+          <Book />
+        </div>
+      </div>
     </>
   )
 }

@@ -19,7 +19,7 @@ export default function Navbar({
   const [shown, setShown] = useState(false)
   const [mode, setMode] = useState<string>()
   const [userData, setUserData] = useState<DocumentData | null>(null)
-  const dropDownRef = useRef(null)
+  const dropDownRef = useRef<HTMLDivElement | null>(null)
 
   const [user] = useAuthState(auth)
 
@@ -128,7 +128,7 @@ export default function Navbar({
               ref={dropDownRef}
               className={`z-50 my-4 ${
                 shown ? "block" : "hidden"
-              } absolute top-14 right-0 md:right-14 xl:right-64 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
+              } absolute top-14 right-0 md:right-14 lg:right-64 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
               id="user-dropdown">
               <div className="px-4 py-3">
                 <span className="block text-sm text-gray-900 dark:text-white">

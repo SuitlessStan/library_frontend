@@ -30,7 +30,7 @@ type UserData = {
   gender: string
   philoType: string
   timestamp: FieldValue
-  profilePictureURL?: string | undefined // Optional for profile picture URL
+  profilePictureURL?: string | undefined | File // Optional for profile picture URL
 }
 
 export default function UserSettings() {
@@ -43,11 +43,11 @@ export default function UserSettings() {
 
   const [formData, setFormData] = useState({
     name: "",
-    profilePictureURL: "",
     age: "",
     gender: "",
     philoType: "",
   })
+  const [profilePictureURL, setProfilePictureURL] = useState("")
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null)
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export default function UserSettings() {
             age: userDoc.age,
             gender: userDoc.gender,
             philoType: userDoc.philoType,
-            profilePictureURL: userDoc.profilePictureURL || prevFormData.profilePictureURL,
+            profilePictureURL: userDoc.profilePictureURL,
           }))
           // setProfilePictureFile(userDoc.profilePictureURL)
         }
@@ -98,7 +98,11 @@ export default function UserSettings() {
 
   const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      setProfilePictureFile(event.target.files[0])
+      const file = event.target.files?.[0]
+      if (file) {
+        setProfilePictureFile(file)
+        setProfilePictureURL(URL.createObjectURL(file))
+      }
     }
   }
 
@@ -245,14 +249,10 @@ export default function UserSettings() {
                 onChange={handleProfilePictureChange}
               />
               <div className="w-40 h-40 rounded-full border overflow-hidden inline-block">
-                {formData.profilePictureURL ? (
+                {profilePictureURL ? (
                   <Image
                     priority
-                    src={
-                      typeof formData.profilePictureURL == "object"
-                        ? URL.createObjectURL(formData.profilePictureURL)
-                        : `${formData.profilePictureURL}`
-                    }
+                    src={`${profilePictureURL}`}
                     alt="Profile"
                     className="object-cover cursor-pointer"
                     width={300}
