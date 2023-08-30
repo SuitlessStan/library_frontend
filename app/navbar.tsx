@@ -13,7 +13,7 @@ import { faArrowUpWideShort, faArrowUpZA } from "@fortawesome/free-solid-svg-ico
 export default function Navbar({
   setModalStatus,
 }: {
-  setModalStatus: React.Dispatch<React.SetStateAction<{ showForm: boolean; showOverlay: boolean }>>
+  setModalStatus: React.Dispatch<React.SetStateAction<boolean>>
 }) {
   const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(false)
@@ -90,12 +90,7 @@ export default function Navbar({
           <div id="bookButtons" className="flex gap-3">
             <button
               className="border px-2 py-2 rounded"
-              onClick={(e) =>
-                setModalStatus((prevModalStatus) => ({
-                  showForm: !prevModalStatus.showForm,
-                  showOverlay: !prevModalStatus.showOverlay,
-                }))
-              }>
+              onClick={(e) => setModalStatus((prevModalStatus) => !prevModalStatus)}>
               Add new book
             </button>
             <button>
@@ -167,13 +162,13 @@ export default function Navbar({
           data-collapse-toggle="navbar-default"
           type="button"
           onClick={() => setOpen((prev) => !prev)}
-          className="inline-flex absolute top-0 right-0 p-1 text-sm h-8 w-8 rounded-lg md:hidden"
+          className="inline-flex absolute top-4 right-2 h-8 w-8 rounded-lg md:hidden"
           aria-controls="navbar-default"
           aria-expanded={open}>
           {!open && (
             <svg
-              width="24"
-              height="24"
+              width="30"
+              height="30"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg">
@@ -188,8 +183,8 @@ export default function Navbar({
           )}
           {open && (
             <svg
-              width="22"
-              height="24"
+              width="30"
+              height="30"
               viewBox="0 0 22 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg">

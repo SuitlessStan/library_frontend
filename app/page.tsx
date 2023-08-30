@@ -8,36 +8,16 @@ import Navbar from "./navbar"
 import { useAuthState } from "react-firebase-hooks/auth"
 import firebaseApp from "@/firebase/config"
 import { getAuth } from "firebase/auth"
-import { apiUrl } from "@/firebase/config"
-import { useRouter } from "next/router"
-import Image from "next/image"
+import { generateRandomBooks } from "@/utils/helpers"
 import Book from "@/components/book/book"
+import Modal from "react-modal"
 
 const auth = getAuth(firebaseApp)
 
-type Book = {
-  title: string
-  id?: string
-  createAt?: string | Date
-  updatedAt?: string | Date
-  inactiveAt?: string | Date
-  fbUserId: string
-  current_page: number | null
-  total_pages: number | null | undefined
-  author: string
-  cover_url: string
-  review: string
-}
-
-const url = "https://2286-213-6-168-107.ngrok-free.app/v1/"
-
 export default function Home() {
   const [user, error] = useAuthState(auth)
-  const [books, setBooks] = useState<Book[]>([])
-  const [modalStatus, setModalStatus] = useState({
-    showForm: false,
-    showOverlay: false,
-  })
+  const [books, setBooks] = useState([])
+  const [modalStatus, setModalStatus] = useState(false)
 
   const [formData, setFormData] = useState({
     title: "",
@@ -46,6 +26,10 @@ export default function Home() {
     total_pages: null,
     review: "",
   })
+
+  const randomBooks = generateRandomBooks(10)
+
+  const closeModal = () => setModalStatus(false)
 
   const renderAuthLinks = () => {
     if (!user) {
@@ -101,21 +85,20 @@ export default function Home() {
   }, [user])
 
   const { title, fbUserId, current_page, total_pages, review } = formData
-  const { showForm, showOverlay } = modalStatus
 
   return (
     <>
       <CyclingBackground />
       <Navbar setModalStatus={setModalStatus} />
-      {showForm && (
+      <Modal className="inline-block" isOpen={modalStatus} onAfterClose={closeModal}>
         <div>
           {/* Main modal */}
           <div
             id="bookModal"
             tabIndex={-1}
-            aria-hidden={showForm}
+            aria-hidden={modalStatus}
             className={`${
-              showForm ? "block" : "hidden"
+              modalStatus ? "block" : "hidden"
             } z-50 p-4 w-full md:w-1/3 overflow-x-hidden overflow-y-auto`}>
             <div className="relative ">
               {/* Modal content */}
@@ -127,17 +110,12 @@ export default function Home() {
                   </h3>
                   <button
                     type="button"
-                    onClick={(e) =>
-                      setModalStatus((prevModalStatus) => ({
-                        showForm: !prevModalStatus.showForm,
-                        showOverlay: !prevModalStatus.showOverlay,
-                      }))
-                    }
+                    onClick={(e) => setModalStatus((prevStatus) => !prevStatus)}
                     className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                     data-modal-hide="bookModal">
                     <svg
                       className="w-3 h-3"
-                      aria-hidden={showForm}
+                      aria-hidden={modalStatus}
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 14 14">
@@ -222,12 +200,7 @@ export default function Home() {
                   <button
                     data-modal-hide="bookModal"
                     type="button"
-                    onClick={(e) =>
-                      setModalStatus((prevModalStatus) => ({
-                        showForm: false,
-                        showOverlay: false,
-                      }))
-                    }
+                    onClick={(e) => setModalStatus((prevStatus) => !prevStatus)}
                     className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
                     Cancel
                   </button>
@@ -236,34 +209,13 @@ export default function Home() {
             </div>
           </div>
         </div>
-      )}
-      {showOverlay && <div className="overlay"></div>}
-
+      </Modal>
       {renderAuthLinks()}
-      <div id="bookDisplay" className="absolute top-20 grid grid-cols-12 px-4">
-        <div className="col-span-12 md:col-span-12">
-          {/* <div className="max-w-sm rounded overflow shadow-lg text-center">
-            <Image
-              width={200}
-              height={200}
-              className="w-full"
-              src="https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png"
-              alt="Sunset in the mountains"
-            />
-            <div className="px-6 py-4">
-              <div className="font-bold text-2xl mb-2">
-                Crime and Punishment <span className="inline-block text-sm">Fyodor Dostoevsky</span>
-              </div>
-              <p className="text-base">
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatibus quia, nulla!
-                Maiores et perferendis eaque, exercitationem praesentium nihil.
-                <span>
-                  <input type="text" name="review" id="review" />
-                </span>
-              </p>
-            </div>
-          </div> */}
-          <Book />
+      <div id="bookDisplay" className="absolute top-20 px-4 flex justify-center items-center">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+          {randomBooks.map((book, i) => (
+            <Book key={i} book={book} />
+          ))}
         </div>
       </div>
     </>

@@ -2,7 +2,7 @@
 
 const nextConfig = {
   images: {
-    domains: ["firebasestorage.googleapis.com", "upload.wikimedia.org"],
+    domains: ["firebasestorage.googleapis.com", "upload.wikimedia.org", "example.com"],
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import { NextRequest, NextResponse } from "next/server"
 import axios from "axios"
-import { apiUrl } from "@/firebase/config"
+import { apiUrl } from "@/config/global"
 
 export async function GET(req: NextApiRequest, { params }) {
   if (req.headers) {

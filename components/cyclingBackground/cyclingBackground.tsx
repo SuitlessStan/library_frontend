@@ -3,52 +3,49 @@
 import { useState, useEffect } from "react"
 import "./CyclingBackground.css"
 import { unsplashClient } from "@/config/global"
-import useAsyncAction from "@/hooks/useAsyncAction"
 import { UnsplashImage } from "@/utils/types"
+import { Random } from "unsplash-js/dist/methods/photos/types"
 
 export default function CyclingBackground() {
   const [imageIndex, setImageIndex] = useState(0)
   const [opacity, setOpacity] = useState(0.6)
-  const [photos, setPhotos] = useState<UnsplashImage[]>([])
+  const [photos, setPhotos] = useState<UnsplashImage[] | Random | Random[] | undefined>([])
 
   const fetchSplashImages = async () => {
-    return await unsplashClient.photos.getRandom({ count: 10 })
+    try {
+      return await unsplashClient.photos.getRandom({ count: 10 })
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  const actionConfig = {
-    onExecute: fetchSplashImages,
-    onSucceed: (result: unknown) => {
-      setPhotos(result.response)
-    },
-    onFailure: (error: Error) => console.error("Error: ", error),
+  const changeIndex = (array: Random | Random[] | UnsplashImage[]) => {
+    setImageIndex((prevIndex) => {
+      if (Array.isArray(array)) {
+        return (prevIndex + 1) % array?.length
+      }
+      return 0
+    })
   }
-
-  const { result, error, execute } = useAsyncAction(actionConfig)
 
   useEffect(() => {
-    execute()
+    fetchSplashImages()
+      .then((res) => {
+        if (res) setPhotos(res.response)
+      })
+      .catch((err) => console.error(err))
 
     const interval = setInterval(() => {
       setOpacity(0)
-
-      setTimeout(() => {
-        setImageIndex((prevIndex) => {
-          if (Array.isArray(photos)) {
-            return (prevIndex + 1) % photos.length
-          }
-          return 0
-        })
-        setOpacity(0.6)
-      }, 400)
+      if (photos) changeIndex(photos)
+      setOpacity(0.6)
     }, 15000)
 
     return () => clearInterval(interval)
-  }, [])
+  })
 
   let backgroundImageStyle = {
-    backgroundImage: `url(${
-      photos[imageIndex].urls.full ? photos[imageIndex].urls.full : photos[imageIndex].urls.regular
-    })`,
+    backgroundImage: photos && `url(${photos[imageIndex]?.urls?.full})`,
     opacity: opacity,
   }
 
