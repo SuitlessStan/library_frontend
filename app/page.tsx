@@ -8,7 +8,6 @@ import Navbar from "./navbar"
 import { useAuthState } from "react-firebase-hooks/auth"
 import firebaseApp from "@/firebase/config"
 import { getAuth } from "firebase/auth"
-import { generateRandomBooks } from "@/utils/helpers"
 import Book from "@/components/book/book"
 import Modal from "react-modal"
 
@@ -26,8 +25,6 @@ export default function Home() {
     total_pages: null,
     review: "",
   })
-
-  const randomBooks = generateRandomBooks(10)
 
   const closeModal = () => setModalStatus(false)
 
@@ -74,16 +71,52 @@ export default function Home() {
         const response = await axios.get(`api/books/${user?.uid}`, requestConfig)
         if (response.status == 200) {
           const results = response.data.result.results
-          // setBooks(response.data.result)
-          console.log(results)
         }
       } catch (err) {
         console.error(err)
       }
     }
-    fetchUserBooks()
+    // fetchUserBooks()
   }, [user])
 
+  const randomBooks = [
+    {
+      title: "The Silent Patient",
+      fbUserId: "user1",
+      current_page: 50,
+      total_pages: 320,
+      author: "Alex Michaelides",
+      cover_url: {
+        medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
+        large: "https://example.com/large_cover1.jpg",
+      },
+      review: "A gripping psychological thriller.",
+    },
+    {
+      title: "The Great Gatsby",
+      fbUserId: "user2",
+      current_page: 100,
+      total_pages: 180,
+      author: "F. Scott Fitzgerald",
+      cover_url: {
+        medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
+        large: "https://example.com/large_cover2.jpg",
+      },
+      review: "A classic American novel.",
+    },
+    {
+      title: "To Kill a Mockingbird",
+      fbUserId: "user3",
+      current_page: 75,
+      total_pages: 280,
+      author: "Harper Lee",
+      cover_url: {
+        medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
+        large: "https://example.com/large_cover3.jpg",
+      },
+      review: "A thought-provoking story of justice and morality.",
+    },
+  ]
   const { title, fbUserId, current_page, total_pages, review } = formData
 
   return (

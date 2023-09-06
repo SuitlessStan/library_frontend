@@ -1,17 +1,21 @@
 import Modal from "react-modal"
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Book } from "@/utils/types"
+import { useWindowSize } from "usehooks-ts"
 
-const customStyles = {
+let customStyles = {
   content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: "22rem",
+    height: "21rem",
     transform: "translate(-50%, -50%)",
     background: "black",
     color: "none",
+    padding: "1rem 1.5rem",
   },
   overlay: {
     background: "none",
@@ -26,22 +30,76 @@ type BookData = {
 const Book: React.FC<BookData> = ({ book }) => {
   const { title, review, author, cover_url } = book
 
+  const [bookReview, setBookReview] = useState(review)
+
   const [modalIsOpen, setModalOpen] = useState(false)
 
-  const openModal = () => setModalOpen(true)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
+  const size = useWindowSize()
+
+  const openModal = () => {
+    setModalOpen(true)
+  }
+
   const closeModal = () => setModalOpen(false)
-  const [bookReview, setBookReview] = useState(review)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setBookReview(e.target.value)
   }
+
+  const caclulateModalPosition = () => {
+    if (buttonRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect()
+
+      const remToPixelRatio = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+      const modalWidthRem = 22
+      const modalHeightRem = 21
+
+      const modalWidth = modalWidthRem * remToPixelRatio
+      const modalHeight = modalHeightRem * remToPixelRatio
+
+      const modalLeft = buttonRect.left + window.scrollX
+      const modalTop = buttonRect.top + window.scrollY
+
+      // Define a margin to ensure the modal stays within the screen boundaries
+      const margin = 200
+
+      const adjustedLeft = Math.max(margin, Math.min(modalLeft, size.width - modalWidth - margin))
+      const adjustedTop = Math.max(margin, Math.min(modalTop, size.height - modalHeight))
+
+      return {
+        left: adjustedLeft,
+        top: adjustedTop,
+        right: adjustedLeft + modalWidth,
+        bottom: adjustedTop + modalHeight,
+      }
+    }
+
+    return {}
+  }
+
+  if (buttonRef.current) {
+    const { left, top, right, bottom } = caclulateModalPosition()
+    if (left && top && bottom && right) {
+      customStyles.content.top = top
+      customStyles.content.left = left
+      customStyles.content.bottom = bottom
+      customStyles.content.right = right
+    }
+  }
+
+  const imageUrl = cover_url
+    ? cover_url.medium
+    : "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png"
+
   return (
     <div className="max-w-sm rounded overflow shadow-lg text-center">
       <Image
         width={200}
         height={200}
         className="w-full"
-        src={"https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png"}
+        src={imageUrl}
         alt="Sunset in the mountains"
       />
       <div className="py-2">
@@ -51,20 +109,21 @@ const Book: React.FC<BookData> = ({ book }) => {
         </div>
         <p className="text-sm overflow-y-scroll h-20">{review}</p>
         <span className="px-2 block">
-          <button onClick={openModal}>
+          <button ref={buttonRef} onClick={openModal}>
             <u>Edit review</u>
           </button>
         </span>
         <Modal
           contentLabel="Review"
-          style={customStyles}
+          style={customStyles as any}
           isOpen={modalIsOpen}
+          ariaHideApp={false}
           onRequestClose={closeModal}>
           <span className="block my-2">Edit your book review</span>
           <textarea
             name="bookReview"
             onChange={handleChange}
-            className="p-3 text-black"
+            className="p-3 text-black overflow-y-scroll"
             style={{ resize: "none" }}
             rows={8}
             cols={30}

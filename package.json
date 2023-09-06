@@ -16,6 +16,7 @@
     "@types/node": "20.4.4",
     "@types/react": "18.2.16",
     "@types/react-dom": "18.2.7",
+    "@uidotdev/usehooks": "^2.2.0",
     "autoprefixer": "10.4.14",
     "axios": "^1.4.0",
     "cors": "^2.8.5",
@@ -35,7 +36,8 @@
     "react-modal": "^3.16.1",
     "tailwindcss": "3.3.3",
     "typescript": "5.1.6",
-    "unsplash-js": "^7.0.18"
+    "unsplash-js": "^7.0.18",
+    "usehooks-ts": "^2.9.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",

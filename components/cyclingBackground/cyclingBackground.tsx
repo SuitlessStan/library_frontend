@@ -1,52 +1,57 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, CSSProperties } from "react"
 import "./CyclingBackground.css"
 import { unsplashClient } from "@/config/global"
 import { UnsplashImage } from "@/utils/types"
-import { Random } from "unsplash-js/dist/methods/photos/types"
 
 export default function CyclingBackground() {
   const [imageIndex, setImageIndex] = useState(0)
   const [opacity, setOpacity] = useState(0.6)
-  const [photos, setPhotos] = useState<UnsplashImage[] | Random | Random[] | undefined>([])
-
-  const fetchSplashImages = async () => {
-    try {
-      return await unsplashClient.photos.getRandom({ count: 10 })
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const changeIndex = (array: Random | Random[] | UnsplashImage[]) => {
-    setImageIndex((prevIndex) => {
-      if (Array.isArray(array)) {
-        return (prevIndex + 1) % array?.length
-      }
-      return 0
-    })
-  }
+  const [photos, setPhotos] = useState<UnsplashImage | UnsplashImage[]>([])
 
   useEffect(() => {
+    const fetchSplashImages = async () => {
+      try {
+        const res = await unsplashClient.photos.getRandom({ count: 10 })
+        if (res && Array.isArray(res.response)) {
+          setPhotos(res.response as UnsplashImage[])
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
     fetchSplashImages()
-      .then((res) => {
-        if (res) setPhotos(res.response)
-      })
-      .catch((err) => console.error(err))
+  }, [])
+
+  useEffect(() => {
+    if (!Object.values(photos).length) return
+
+    const changeIndex = () => {
+      setOpacity(0)
+      setTimeout(() => {
+        setImageIndex((prevIndex) => (prevIndex + 1) % Object.values(photos).length)
+        setOpacity(0.6)
+      }, 1000)
+    }
 
     const interval = setInterval(() => {
       setOpacity(0)
-      if (photos) changeIndex(photos)
+      changeIndex()
       setOpacity(0.6)
     }, 15000)
 
     return () => clearInterval(interval)
-  })
+  }, [photos])
 
-  let backgroundImageStyle = {
-    backgroundImage: photos && `url(${photos[imageIndex]?.urls?.full})`,
+  const backgroundImage =
+    Object.values(photos).length && photos[imageIndex as keyof typeof photos]["urls"]["full"]
+
+  let backgroundImageStyle: CSSProperties = {
+    backgroundImage: backgroundImage ? `url(${backgroundImage})` : "",
     opacity: opacity,
+    backgroundPosition: "center",
+    backgroundRepeat: "repeat-y",
   }
 
   return <div className="cyclingBackground absolute" style={backgroundImageStyle}></div>
