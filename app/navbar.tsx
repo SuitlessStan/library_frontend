@@ -199,7 +199,7 @@ export default function Navbar({
   }
 
   return (
-    <nav className="dark:bg-black bg-white fixed w-full z-10 top-0 opacity-75">
+    <nav className="dark:bg-black bg-white fixed w-full z-10 top-0">
       {renderAuthLinks()}
     </nav>
   )

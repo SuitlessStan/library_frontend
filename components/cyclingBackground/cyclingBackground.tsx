@@ -7,7 +7,7 @@ import { UnsplashImage } from "@/utils/types"
 
 export default function CyclingBackground() {
   const [imageIndex, setImageIndex] = useState(0)
-  const [opacity, setOpacity] = useState(0.6)
+  const [opacity, setOpacity] = useState(1)
   const [photos, setPhotos] = useState<UnsplashImage | UnsplashImage[]>([])
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function CyclingBackground() {
     const interval = setInterval(() => {
       setOpacity(0)
       changeIndex()
-      setOpacity(0.6)
+      setOpacity(1)
     }, 15000)
 
     return () => clearInterval(interval)
@@ -54,5 +54,5 @@ export default function CyclingBackground() {
     backgroundRepeat: "repeat-y",
   }
 
-  return <div className="cyclingBackground absolute" style={backgroundImageStyle}></div>
+  return <div className="cyclingBackground absolute top-20" style={backgroundImageStyle}></div>
 }

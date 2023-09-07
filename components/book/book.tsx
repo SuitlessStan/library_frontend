@@ -94,7 +94,7 @@ const Book: React.FC<BookData> = ({ book }) => {
     : "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png"
 
   return (
-    <div className="max-w-sm rounded overflow shadow-lg text-center">
+    <div className="max-w-sm rounded overflow shadow-lg text-center p-2 border-2 border-black dark:border-white">
       <Image
         width={200}
         height={200}
@@ -107,7 +107,7 @@ const Book: React.FC<BookData> = ({ book }) => {
           {title} <br />
           <span className="inline-block text-sm">{author}</span>
         </div>
-        <p className="text-sm overflow-y-scroll h-20">{review}</p>
+        <p className="text-sm h-20">{review}</p>
         <span className="px-2 block">
           <button ref={buttonRef} onClick={openModal}>
             <u>Edit review</u>
@@ -123,7 +123,7 @@ const Book: React.FC<BookData> = ({ book }) => {
           <textarea
             name="bookReview"
             onChange={handleChange}
-            className="p-3 text-black overflow-y-scroll"
+            className="p-3 overflow-y-scroll"
             style={{ resize: "none" }}
             rows={8}
             cols={30}
