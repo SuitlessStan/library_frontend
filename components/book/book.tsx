@@ -1,8 +1,11 @@
 import Modal from "react-modal"
 import Image from "next/image"
-import { useState, useEffect, useRef } from "react"
+import "./book.css"
+import { useState, useRef } from "react"
 import { Book } from "@/utils/types"
 import { useWindowSize } from "usehooks-ts"
+import ProgressBar from "@ramonak/react-progress-bar"
+import { If, Else, Then } from "react-if"
 
 let customStyles = {
   content: {
@@ -28,9 +31,10 @@ type BookData = {
 }
 
 const Book: React.FC<BookData> = ({ book }) => {
-  const { title, review, author, cover_url } = book
+  let { title, review, author, cover_url, current_page, total_pages } = book
 
   const [bookReview, setBookReview] = useState(review)
+  const [progress, setProgress] = useState(false)
 
   const [modalIsOpen, setModalOpen] = useState(false)
 
@@ -42,6 +46,8 @@ const Book: React.FC<BookData> = ({ book }) => {
   }
 
   const closeModal = () => setModalOpen(false)
+
+  const toggleProgress = () => setProgress((prevState) => !prevState)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setBookReview(e.target.value)
@@ -89,12 +95,15 @@ const Book: React.FC<BookData> = ({ book }) => {
     }
   }
 
+  current_page = current_page ? current_page : 0
+  total_pages = total_pages ? total_pages : 1000
+
   const imageUrl = cover_url
     ? cover_url.medium
     : "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png"
 
   return (
-    <div className="max-w-sm rounded overflow shadow-lg text-center p-2 border-2 border-black dark:border-white">
+    <div className="max-w-sm overflow shadow-lg text-center p-2 border-2 border-t-0 border-black dark:border-white">
       <Image
         width={200}
         height={200}
@@ -109,9 +118,43 @@ const Book: React.FC<BookData> = ({ book }) => {
         </div>
         <p className="text-sm h-20">{review}</p>
         <span className="px-2 block">
-          <button ref={buttonRef} onClick={openModal}>
-            <u>Edit review</u>
-          </button>
+          <div className="flex justify-between text-sm md:text-md">
+            <button ref={buttonRef} onClick={openModal}>
+              <u>Edit review</u>
+            </button>
+            <button onClick={toggleProgress}>
+              <u>Edit progress</u>
+            </button>
+          </div>
+          <If condition={progress === true}>
+            <Then>
+              <div className="progress-section">
+                <input
+                  type="number"
+                  className="w-full p-1 border-none rounded-sm text-black"
+                  name="current_page"
+                  defaultValue={current_page}
+                  id="current_page"
+                />
+                <input
+                  type="number"
+                  className="w-full p-1 border-none rounded-sm text-black"
+                  name="pages_count"
+                  defaultValue={total_pages}
+                  id="pages_count"
+                />
+              </div>
+            </Then>
+            <Else>
+              <ProgressBar
+                bgColor="#1d4ed8"
+                className="my-2"
+                animateOnRender
+                isLabelVisible={false}
+                completed={(current_page / total_pages) * 100}
+              />
+            </Else>
+          </If>
         </span>
         <Modal
           contentLabel="Review"
@@ -120,14 +163,16 @@ const Book: React.FC<BookData> = ({ book }) => {
           ariaHideApp={false}
           onRequestClose={closeModal}>
           <span className="block my-2">Edit your book review</span>
-          <textarea
-            name="bookReview"
-            onChange={handleChange}
-            className="p-3 overflow-y-scroll"
-            style={{ resize: "none" }}
-            rows={8}
-            cols={30}
-            value={bookReview}></textarea>
+          <form action="/api/review" method="post">
+            <textarea
+              name="bookReview"
+              onChange={handleChange}
+              className="p-3 overflow-y-scroll text-black"
+              style={{ resize: "none" }}
+              rows={8}
+              cols={30}
+              value={bookReview}></textarea>
+          </form>
           <div className="flex justify-center gap-5">
             <button
               type="button"

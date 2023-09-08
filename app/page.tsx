@@ -246,9 +246,9 @@ export default function Home() {
       {renderAuthLinks()}
       <div id="bookDisplay" className="absolute top-20 px-4 flex justify-center items-center">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-          {randomBooks.map((book, i) => (
+          {/* {randomBooks.map((book, i) => (
             <Book key={i} book={book} />
-          ))}
+          ))} */}
         </div>
       </div>
     </>

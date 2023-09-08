@@ -54,5 +54,5 @@ export default function CyclingBackground() {
     backgroundRepeat: "repeat-y",
   }
 
-  return <div className="cyclingBackground absolute top-20" style={backgroundImageStyle}></div>
+  return <div className="cyclingBackground absolute top-16" style={backgroundImageStyle}></div>
 }

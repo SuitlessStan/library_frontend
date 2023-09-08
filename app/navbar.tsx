@@ -25,9 +25,9 @@ export default function Navbar({
 
   const [user] = useAuthState(auth)
 
-  const logOut = async (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    await signOut(auth)
-  }
+  const logOut = async () => await signOut(auth)
+
+  const hideNavbar = () => setShown(false)
 
   useEffect(() => {
     async function getLatestUserData() {
@@ -169,14 +169,14 @@ export default function Navbar({
           </If>
         </button>
         <div className={`${open ? "block" : "hidden"} w-full md:block md:w-auto`} id="navbar">
-          <ul className="font-medium flex flex-col md:flex-row md:py-4 md:mx-4 mt-5 rounded-lg text-center md:space-x-8 md:mt-0 border-gray-700">
-            <If condition={!user}>
+          <ul className="font-medium flex flex-col md:flex-row md:pt-4 md:mx-4 mt-5 rounded-lg text-center md:space-x-8 md:mt-0 border-gray-700">
+            <If condition={user == undefined || user == null}>
               <Then>
                 <>
                   <li>
                     <Link
                       href="/login"
-                      onClick={(e) => setShown(false)}
+                      onClick={hideNavbar}
                       className="block py-2 pl-3 pr-4 md:p-0 rounded text-sm md:text-lg border-b-4 border-transparent hover:border-white transition-colors font-Roboto">
                       Log in
                     </Link>
@@ -184,7 +184,7 @@ export default function Navbar({
                   <li>
                     <Link
                       href="/signup"
-                      onClick={(e) => setShown(false)}
+                      onClick={hideNavbar}
                       className="block py-2 pl-3 pr-4 md:p-0 rounded text-sm md:text-lg border-b-4 border-transparent hover:border-white transition-colors font-Roboto">
                       Sign up
                     </Link>
@@ -198,9 +198,5 @@ export default function Navbar({
     )
   }
 
-  return (
-    <nav className="dark:bg-black bg-white fixed w-full z-10 top-0">
-      {renderAuthLinks()}
-    </nav>
-  )
+  return <nav className="dark:bg-black bg-white fixed w-full z-10 top-0">{renderAuthLinks()}</nav>
 }
