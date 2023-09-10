@@ -1,7 +1,7 @@
 import Modal from "react-modal"
 import Image from "next/image"
 import "./book.css"
-import { useState, useRef } from "react"
+import { useState, useRef, FormEventHandler, MouseEventHandler } from "react"
 import { Book } from "@/utils/types"
 import { useWindowSize } from "usehooks-ts"
 import ProgressBar from "@ramonak/react-progress-bar"
@@ -28,13 +28,18 @@ let customStyles = {
 
 type BookData = {
   book: Book
+  onEdit: (id: string, review?: string, current_page?: number, total_pages?: number) => void
 }
 
-const Book: React.FC<BookData> = ({ book }) => {
-  let { title, review, author, cover_url, current_page, total_pages } = book
+const Book: React.FC<BookData> = ({ book, onEdit }) => {
+  let { id, title, review, author, cover_url, current_page, total_pages } = book
 
   const [bookReview, setBookReview] = useState(review)
   const [progress, setProgress] = useState(false)
+  const [pages, setPages] = useState({
+    currentPage: current_page,
+    totalPages: total_pages,
+  })
 
   const [modalIsOpen, setModalOpen] = useState(false)
 
@@ -102,6 +107,25 @@ const Book: React.FC<BookData> = ({ book }) => {
     ? cover_url.medium
     : "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png"
 
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault()
+    onEdit(id as string, bookReview)
+    closeModal()
+  }
+
+  const handleConfirm: MouseEventHandler<HTMLButtonElement> = (e) => {
+    if (pages.currentPage) {
+      onEdit(id as string, undefined, pages.currentPage, undefined)
+    }
+    if (pages.totalPages) {
+      onEdit(id as string, undefined, undefined, pages.totalPages)
+    }
+    if (pages.currentPage && pages.totalPages) {
+      onEdit(id as string, undefined, pages.currentPage, pages.totalPages)
+    }
+    setProgress(false)
+  }
+
   return (
     <div className="max-w-sm overflow shadow-lg text-center p-2 border-2 border-t-0 border-black dark:border-white">
       <Image
@@ -132,18 +156,27 @@ const Book: React.FC<BookData> = ({ book }) => {
                 <input
                   type="number"
                   className="w-full p-1 border-none rounded-sm text-black"
-                  name="current_page"
-                  defaultValue={current_page}
-                  id="current_page"
+                  name="currentPage"
+                  id="currentPage"
+                  value={pages.currentPage as number}
+                  onChange={(e) =>
+                    setPages({ currentPage: parseInt(e.target.value), totalPages: total_pages })
+                  }
                 />
                 <input
                   type="number"
                   className="w-full p-1 border-none rounded-sm text-black"
-                  name="pages_count"
-                  defaultValue={total_pages}
-                  id="pages_count"
+                  name="pagesCount"
+                  id="pagesCount"
+                  value={pages.totalPages as number}
+                  onChange={(e) =>
+                    setPages({ currentPage: current_page, totalPages: parseInt(e.target.value) })
+                  }
                 />
               </div>
+              <button className="bg-blue-700 py-1 px-2 rounded" onClick={handleConfirm}>
+                Confirm
+              </button>
             </Then>
             <Else>
               <ProgressBar
@@ -163,7 +196,7 @@ const Book: React.FC<BookData> = ({ book }) => {
           ariaHideApp={false}
           onRequestClose={closeModal}>
           <span className="block my-2">Edit your book review</span>
-          <form action="/api/review" method="post">
+          <form action="/api/review" method="post" onSubmit={handleSubmit}>
             <textarea
               name="bookReview"
               onChange={handleChange}
@@ -172,21 +205,21 @@ const Book: React.FC<BookData> = ({ book }) => {
               rows={8}
               cols={30}
               value={bookReview}></textarea>
+            <div className="flex justify-center gap-5">
+              <button
+                type="submit"
+                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                Save
+              </button>
+              <button
+                data-modal-hide="bookModal"
+                type="button"
+                onClick={closeModal}
+                className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+                Cancel
+              </button>
+            </div>
           </form>
-          <div className="flex justify-center gap-5">
-            <button
-              type="button"
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-              Save
-            </button>
-            <button
-              data-modal-hide="bookModal"
-              type="button"
-              onClick={closeModal}
-              className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
-              Cancel
-            </button>
-          </div>
         </Modal>
       </div>
     </div>

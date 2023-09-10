@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, FormEventHandler, MouseEvent } from "react"
 import axios from "axios"
 import Link from "next/link"
 import CyclingBackground from "@/components/cyclingBackground/cyclingBackground"
@@ -10,13 +10,81 @@ import firebaseApp from "@/firebase/config"
 import { getAuth } from "firebase/auth"
 import Book from "@/components/book/book"
 import Modal from "react-modal"
+import { connectStorageEmulator } from "firebase/storage"
 
 const auth = getAuth(firebaseApp)
 
+const randomBooks = [
+  {
+    id: 1,
+    title: "The Silent Patient",
+    fbUserId: "user1",
+    current_page: 50,
+    total_pages: 320,
+    author: "Alex Michaelides",
+    cover_url: {
+      medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
+      large: "https://example.com/large_cover1.jpg",
+    },
+    review: "A gripping psychological thriller.",
+  },
+  {
+    id: 2,
+    title: "The Great Gatsby",
+    fbUserId: "user2",
+    current_page: 100,
+    total_pages: 180,
+    author: "F. Scott Fitzgerald",
+    cover_url: {
+      medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
+      large: "https://example.com/large_cover2.jpg",
+    },
+    review: "A classic American novel.",
+  },
+  {
+    id: 3,
+    title: "To Kill a Mockingbird",
+    fbUserId: "user3",
+    current_page: 75,
+    total_pages: 280,
+    author: "Harper Lee",
+    cover_url: {
+      medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
+      large: "https://example.com/large_cover3.jpg",
+    },
+    review: "A thought-provoking story of justice and morality.",
+  },
+]
+
 export default function Home() {
   const [user, error] = useAuthState(auth)
-  const [books, setBooks] = useState([])
+  const [books, setBooks] = useState<Book[]>(randomBooks)
   const [modalStatus, setModalStatus] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [submissionError, setSubmissionError] = useState("")
+  const onEdit = useCallback(
+    (id: string, review?: string, current_page?: number, total_pages?: number) => {
+      const matchedBooks = books.map((book) => {
+        if (book.id === id) {
+          if (review) {
+            const newBook = { ...book, review }
+            return newBook
+          }
+          if (current_page) {
+            const newBook = { ...book, current_page }
+            return newBook
+          }
+          if (total_pages) {
+            const newBook = { ...book, total_pages }
+            return newBook
+          }
+        }
+        return book
+      })
+      setBooks(matchedBooks)
+    },
+    [books]
+  )
 
   const [formData, setFormData] = useState({
     title: "",
@@ -79,51 +147,89 @@ export default function Home() {
     // fetchUserBooks()
   }, [user])
 
-  const randomBooks = [
-    {
-      title: "The Silent Patient",
-      fbUserId: "user1",
-      current_page: 50,
-      total_pages: 320,
-      author: "Alex Michaelides",
-      cover_url: {
-        medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
-        large: "https://example.com/large_cover1.jpg",
-      },
-      review: "A gripping psychological thriller.",
-    },
-    {
-      title: "The Great Gatsby",
-      fbUserId: "user2",
-      current_page: 100,
-      total_pages: 180,
-      author: "F. Scott Fitzgerald",
-      cover_url: {
-        medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
-        large: "https://example.com/large_cover2.jpg",
-      },
-      review: "A classic American novel.",
-    },
-    {
-      title: "To Kill a Mockingbird",
-      fbUserId: "user3",
-      current_page: 75,
-      total_pages: 280,
-      author: "Harper Lee",
-      cover_url: {
-        medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
-        large: "https://example.com/large_cover3.jpg",
-      },
-      review: "A thought-provoking story of justice and morality.",
-    },
-  ]
+  const alerts = () => {
+    setLoading(true)
+    submissionError && (
+      <div
+        className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+        role="alert">
+        <strong className="font-bold">{error}</strong>
+        <span className="block sm:inline">{error}</span>
+        <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
+          <svg
+            className="fill-current h-6 w-6 text-red-500"
+            role="button"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20">
+            <title>Close</title>
+            <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" />
+          </svg>
+        </span>
+      </div>
+    )
+    !submissionError && (
+      <div
+        className="bg-teal-100 border-t-4 border-teal-500 rounded-b text-teal-900 px-4 py-3 shadow-md"
+        role="alert">
+        <div className="flex">
+          <div className="py-1">
+            <svg
+              className="fill-current h-6 w-6 text-teal-500 mr-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20">
+              <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-bold">Congrats!</p>
+            <p className="text-sm">A new book has been added to your library</p>
+          </div>
+        </div>
+      </div>
+    )
+    setTimeout(() => setLoading(false), 3000)
+  }
+
   const { title, fbUserId, current_page, total_pages, review } = formData
+
+  const handleSubmit:
+    | FormEventHandler<HTMLFormElement>
+    | MouseEvent<HTMLButtonElement, MouseEvent> = async (e) => {
+    setLoading(true)
+    e?.preventDefault()
+    const formData = new FormData(e?.currentTarget)
+    const title = formData.get("title")
+    const current_page = formData.get("current_page")
+    const total_pages = formData.get("total_pages")
+    const review = formData.get("review")
+    const bookMatch = books.find((book) => title === book.title)
+    if (bookMatch) {
+      setSubmissionError("Book already exists in library!")
+      return
+    }
+    const fbUserId = await user?.getIdToken()
+    setBooks((prevBooksArray) => [
+      ...prevBooksArray,
+      {
+        title: title as string,
+        fbUserId: fbUserId as string,
+        current_page: parseInt(current_page as string),
+        total_pages: parseInt(total_pages as string),
+        review: review as string,
+      },
+    ])
+    closeModal()
+  }
 
   return (
     <>
       <CyclingBackground />
       <Navbar setModalStatus={setModalStatus} />
-      <Modal className="inline-block" isOpen={modalStatus} onAfterClose={closeModal}>
+      <Modal
+        className="inline-block"
+        isOpen={modalStatus}
+        ariaHideApp={false}
+        onAfterClose={closeModal}>
         <div>
           {/* Main modal */}
           <div
@@ -163,9 +269,9 @@ export default function Home() {
                     <span className="sr-only">Close modal</span>
                   </button>
                 </div>
-                {/*  Modal body  */}
-                <div className="p-6 space-y-6">
-                  <form action="">
+                <form action="" method="POST" onSubmit={handleSubmit}>
+                  {/*  Modal body  */}
+                  <div className="p-6 space-y-6">
                     <div className="input flex flex-col my-3 gap-1">
                       <label htmlFor="title" className="text-md">
                         Title
@@ -196,7 +302,7 @@ export default function Home() {
                     </div>
                     <div className="input flex flex-col my-3 gap-1">
                       <label htmlFor="total_pages" className="text-md">
-                        Pages count
+                        Total pages
                       </label>
                       <input
                         type="number"
@@ -220,24 +326,27 @@ export default function Home() {
                         className="w-full border-4 rounded text-black border-gray-500 p-3"
                         style={{ height: "10rem", resize: "none" }}></textarea>
                     </div>
-                  </form>
-                </div>
-                {/* Modal footer  */}
-                <div className="flex justify-center items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
-                  <button
-                    data-modal-hide="bookModal"
-                    type="button"
-                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                    Add
-                  </button>
-                  <button
-                    data-modal-hide="bookModal"
-                    type="button"
-                    onClick={(e) => setModalStatus((prevStatus) => !prevStatus)}
-                    className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
-                    Cancel
-                  </button>
-                </div>
+                  </div>
+                  {/* Modal footer  */}
+                  <div className="flex justify-center items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
+                    <button
+                      data-modal-hide="bookModal"
+                      type="submit"
+                      // onClick={(e) => closeModal()}
+                      className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                      Add
+                    </button>
+                    <button
+                      data-modal-hide="bookModal"
+                      type="button"
+                      onClick={(e) => {
+                        closeModal()
+                      }}
+                      className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+                      Cancel
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
@@ -246,9 +355,9 @@ export default function Home() {
       {renderAuthLinks()}
       <div id="bookDisplay" className="absolute top-20 px-4 flex justify-center items-center">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-          {/* {randomBooks.map((book, i) => (
-            <Book key={i} book={book} />
-          ))} */}
+          {books.map((book, i) => (
+            <Book key={i} book={book} onEdit={onEdit} />
+          ))}
         </div>
       </div>
     </>

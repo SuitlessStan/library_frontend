@@ -31,15 +31,15 @@ export type UnsplashImage = {
 
 export type Book = {
   title: string
-  id?: string
+  id?: string | number
   createAt?: string | Date
   updatedAt?: string | Date
   inactiveAt?: string | Date
   fbUserId: string
   current_page: number | null
   total_pages: number | null | undefined
-  author: string
-  cover_url: {
+  author?: string
+  cover_url?: {
     medium: string
     large: string
   }
