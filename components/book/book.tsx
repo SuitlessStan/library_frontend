@@ -28,7 +28,12 @@ let customStyles = {
 
 type BookData = {
   book: Book
-  onEdit: (id: string, review?: string, current_page?: number, total_pages?: number) => void
+  onEdit: (
+    id: string | number,
+    review?: string,
+    current_page?: number,
+    total_pages?: number
+  ) => void
 }
 
 const Book: React.FC<BookData> = ({ book, onEdit }) => {
@@ -109,7 +114,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
-    onEdit(id as string, bookReview)
+    if (id) onEdit(id, bookReview)
     closeModal()
   }
 
@@ -127,7 +132,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
   }
 
   return (
-    <div className="max-w-sm overflow shadow-lg text-center p-2 border-2 border-t-0 border-black dark:border-white">
+    <div className="max-w-sm overflow shadow-lg text-center p-2 border-2 border-t-0 border-black dark:border-white bg-black">
       <Image
         width={200}
         height={200}
@@ -136,18 +141,18 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
         alt="Sunset in the mountains"
       />
       <div className="py-2">
-        <div className="font-bold text-md md:text-2xl mb-2">
+        <div className="font-bold text-white text-md md:text-2xl mb-2">
           {title} <br />
-          <span className="inline-block text-sm">{author}</span>
+          <span className="inline-block text-white text-sm">{author}</span>
         </div>
-        <p className="text-sm h-20">{review}</p>
-        <span className="px-2 block">
-          <div className="flex justify-between text-sm md:text-md">
+        <p className="text-sm h-20 overflow-y-scroll text-white">{review}</p>
+        <span className="px-2 block my-2">
+          <div className="flex justify-between text-sm md:text-md text-white">
             <button ref={buttonRef} onClick={openModal}>
-              <u>Edit review</u>
+              <u className="text-sm md:text-md">Edit review</u>
             </button>
             <button onClick={toggleProgress}>
-              <u>Edit progress</u>
+              <u className="text-sm md:text-md">Edit progress</u>
             </button>
           </div>
           <If condition={progress === true}>
@@ -174,9 +179,16 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
                   }
                 />
               </div>
-              <button className="bg-blue-700 py-1 px-2 rounded" onClick={handleConfirm}>
-                Confirm
-              </button>
+              <div className="flex gap-2 justify-center">
+                <button className="bg-blue-700 py-1 px-2 rounded" onClick={handleConfirm}>
+                  Update
+                </button>
+                <button
+                  className="bg-red-500 py-1 px-2 rounded"
+                  onClick={(e) => setProgress(false)}>
+                  Cancel
+                </button>
+              </div>
             </Then>
             <Else>
               <ProgressBar
@@ -196,7 +208,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
           ariaHideApp={false}
           onRequestClose={closeModal}>
           <span className="block my-2">Edit your book review</span>
-          <form action="/api/review" method="post" onSubmit={handleSubmit}>
+          <form action="" method="post" onSubmit={handleSubmit}>
             <textarea
               name="bookReview"
               onChange={handleChange}

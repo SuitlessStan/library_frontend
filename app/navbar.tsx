@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, ChangeEvent } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { signOut } from "firebase/auth"
@@ -8,26 +8,61 @@ import { auth, db } from "@/firebase/config"
 import { useAuthState } from "react-firebase-hooks/auth"
 import { DocumentData, collection, getDocs, limit, orderBy, query, where } from "firebase/firestore"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowUpWideShort, faArrowUpZA } from "@fortawesome/free-solid-svg-icons"
+import {
+  faArrowUpWideShort,
+  faArrowUpZA,
+  faMagnifyingGlass,
+} from "@fortawesome/free-solid-svg-icons"
 import { If, Else, Then } from "react-if"
 import { useDarkMode } from "usehooks-ts"
+import { Book } from "@/utils/types"
 
 export default function Navbar({
   setModalStatus,
+  setFilteredBooks,
+  books,
 }: {
+  setFilteredBooks: React.Dispatch<React.SetStateAction<Book[]>>
   setModalStatus: React.Dispatch<React.SetStateAction<boolean>>
+  books: Book[]
 }) {
   const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(false)
   const [userData, setUserData] = useState<DocumentData | null>(null)
   const dropDownRef = useRef(null)
   const { isDarkMode } = useDarkMode()
+  const [searchBar, setSearchBar] = useState(false)
+  const [searchInput, setSearchInput] = useState("")
 
   const [user] = useAuthState(auth)
 
   const logOut = async () => await signOut(auth)
 
   const hideNavbar = () => setShown(false)
+  const toggleSearchBar = () => {
+    if (searchBar == false) setSearchBar((prevState) => !prevState)
+    if (searchBar) {
+      setSearchBar((prevState) => !prevState)
+      setSearchInput("")
+      setFilteredBooks([])
+    }
+  }
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const inputValue = e.target.value
+    setSearchInput(inputValue)
+
+    if (!searchInput.length) {
+      setFilteredBooks([])
+    }
+    if (searchInput.length > 0) {
+      const filteredBooks = books.filter((book) =>
+        book.title.toLowerCase().includes(inputValue.toLowerCase())
+      )
+      setFilteredBooks(filteredBooks)
+    }
+  }
 
   useEffect(() => {
     async function getLatestUserData() {
@@ -67,6 +102,24 @@ export default function Navbar({
             <button>
               <FontAwesomeIcon icon={faArrowUpZA} size="lg" />
             </button>
+
+            <div style={{ display: "flex", alignItems: "center" }}>
+              {searchBar ? (
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Search"
+                  className={`text-black rounded active:border-none focus:border-none p-2`}
+                  style={{ order: 1 }}
+                  onChange={handleChange}
+                  value={searchInput}
+                />
+              ) : null}
+
+              <button className={`mx-4`} onClick={toggleSearchBar} style={{ order: 2 }}>
+                <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
+              </button>
+            </div>
           </div>
           <div id="userProfile" className="flex flex-col items-center md:order-2">
             <button
