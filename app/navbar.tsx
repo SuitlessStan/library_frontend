@@ -12,11 +12,12 @@ import {
   faArrowUpWideShort,
   faArrowUpZA,
   faMagnifyingGlass,
+  faCircleXmark,
 } from "@fortawesome/free-solid-svg-icons"
 import { If, Else, Then } from "react-if"
 import { useDarkMode } from "usehooks-ts"
 import { Book } from "@/utils/types"
-import Tooltip from "@/components/Tooltip/toolTip"
+import Tooltip from "@/components/Tooltip/Tooltip"
 
 export default function Navbar({
   setModalStatus,
@@ -64,7 +65,13 @@ export default function Navbar({
       const filteredBooks = books.filter((book) =>
         book.title.toLowerCase().includes(inputValue.toLowerCase())
       )
-      setFilteredBooks(filteredBooks)
+      if (!filteredBooks.length) {
+        setFilteredBooks([])
+      }
+
+      if (filteredBooks.length) {
+        setFilteredBooks(filteredBooks)
+      }
     }
   }
 
@@ -174,11 +181,27 @@ export default function Navbar({
                 />
               ) : null}
 
-              <Tooltip text="Search for book">
-                <button className={`mx-4 relative bottom-2`} onClick={toggleSearchBar} style={{ order: 2 }}>
-                  <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
-                </button>
-              </Tooltip>
+              {!searchBar && (
+                <Tooltip text="Search for book">
+                  <button
+                    className={`mx-4 relative bottom-2`}
+                    onClick={toggleSearchBar}
+                    style={{ order: 2 }}>
+                    <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
+                  </button>
+                </Tooltip>
+              )}
+
+              {searchBar && (
+                <Tooltip text="Close">
+                  <button
+                    className={`mx-4 relative bottom-2`}
+                    onClick={toggleSearchBar}
+                    style={{ order: 2 }}>
+                    <FontAwesomeIcon icon={faCircleXmark} size="lg" />
+                  </button>
+                </Tooltip>
+              )}
             </div>
           </div>
           <div id="userProfile" className="flex flex-col items-center md:order-2">
@@ -204,7 +227,7 @@ export default function Navbar({
               ref={dropDownRef}
               className={`z-50 my-4 ${
                 shown ? "block" : "hidden"
-              } absolute top-14 right-0 md:right-14 lg:right-64 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
+              } absolute top-14 right-0 md:right-14 lg:right-0 xl:right-20 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
               id="user-dropdown">
               <div className="px-4 py-3">
                 <span className="block text-sm text-gray-900 dark:text-white">

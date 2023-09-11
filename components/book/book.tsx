@@ -199,7 +199,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
                 bgColor="#1d4ed8"
                 className="my-2"
                 animateOnRender
-                isLabelVisible={false}
+                isLabelVisible={true}
                 completed={(current_page / total_pages) * 100}
               />
             </Else>

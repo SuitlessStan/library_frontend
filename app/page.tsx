@@ -162,8 +162,6 @@ export default function Home() {
     closeModal()
   }
 
-  console.log("books ", books)
-
   return (
     <>
       <CyclingBackground />
