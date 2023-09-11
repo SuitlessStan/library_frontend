@@ -6,6 +6,7 @@ import { Book } from "@/utils/types"
 import { useWindowSize } from "usehooks-ts"
 import ProgressBar from "@ramonak/react-progress-bar"
 import { If, Else, Then } from "react-if"
+import moment from "moment"
 
 let customStyles = {
   content: {
@@ -37,24 +38,22 @@ type BookData = {
 }
 
 const Book: React.FC<BookData> = ({ book, onEdit }) => {
-  let { id, title, review, author, cover_url, current_page, total_pages } = book
+  let { id, title, review, author, cover_url, current_page, total_pages, createAt, updatedAt } =
+    book
 
   const [bookReview, setBookReview] = useState(review)
   const [progress, setProgress] = useState(false)
+  const [modalIsOpen, setModalOpen] = useState(false)
   const [pages, setPages] = useState({
     currentPage: current_page,
     totalPages: total_pages,
   })
 
-  const [modalIsOpen, setModalOpen] = useState(false)
-
   const buttonRef = useRef<HTMLButtonElement | null>(null)
+
   const size = useWindowSize()
 
-  const openModal = () => {
-    setModalOpen(true)
-  }
-
+  const openModal = () => setModalOpen(true)
   const closeModal = () => setModalOpen(false)
 
   const toggleProgress = () => setProgress((prevState) => !prevState)
@@ -105,6 +104,8 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
     }
   }
 
+  updatedAt = updatedAt ? updatedAt : createAt
+
   current_page = current_page ? current_page : 0
   total_pages = total_pages ? total_pages : 1000
 
@@ -141,11 +142,14 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
         alt="Sunset in the mountains"
       />
       <div className="py-2">
-        <div className="font-bold text-white text-md md:text-2xl mb-2">
+        <div className="font-bold h-16 md:h-20 text-white text-md md:text-2xl mb-2">
           {title} <br />
           <span className="inline-block text-white text-sm">{author}</span>
         </div>
         <p className="text-sm h-20 overflow-y-scroll text-white">{review}</p>
+        <span className="inline-block text-xs opacity-80">
+          {updatedAt ? updatedAt.toLocaleString() : createAt?.toLocaleString()}
+        </span>
         <span className="px-2 block my-2">
           <div className="flex justify-between text-sm md:text-md text-white">
             <button ref={buttonRef} onClick={openModal}>

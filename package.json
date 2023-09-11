@@ -26,6 +26,7 @@
     "eslint-config-next": "13.4.12",
     "firebase": "^10.1.0",
     "js-cookie": "^3.0.5",
+    "moment": "^2.29.4",
     "next": "13.4.12",
     "next-connect": "^1.0.0",
     "pexels": "^1.4.0",

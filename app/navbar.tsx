@@ -16,12 +16,15 @@ import {
 import { If, Else, Then } from "react-if"
 import { useDarkMode } from "usehooks-ts"
 import { Book } from "@/utils/types"
+import Tooltip from "@/components/Tooltip/toolTip"
 
 export default function Navbar({
   setModalStatus,
   setFilteredBooks,
+  setBooks,
   books,
 }: {
+  setBooks: React.Dispatch<React.SetStateAction<Book[]>>
   setFilteredBooks: React.Dispatch<React.SetStateAction<Book[]>>
   setModalStatus: React.Dispatch<React.SetStateAction<boolean>>
   books: Book[]
@@ -39,6 +42,7 @@ export default function Navbar({
   const logOut = async () => await signOut(auth)
 
   const hideNavbar = () => setShown(false)
+
   const toggleSearchBar = () => {
     if (searchBar == false) setSearchBar((prevState) => !prevState)
     if (searchBar) {
@@ -62,6 +66,42 @@ export default function Navbar({
       )
       setFilteredBooks(filteredBooks)
     }
+  }
+
+  const filterBooksbyDate = () => {
+    const filteredBooks = books.filter((book) => book.createAt || book.updatedAt)
+
+    const sortedBooks = filteredBooks.sort((a, b) => {
+      const aDate = a.createAt || a.updatedAt
+      const bDate = b.createAt || b.updatedAt
+
+      if (aDate && bDate) {
+        return new Date(bDate).getTime() - new Date(aDate).getTime()
+      } else if (aDate) {
+        return -1
+      } else if (bDate) {
+        return 1
+      } else {
+        return 0
+      }
+    })
+
+    return sortedBooks
+  }
+
+  const filterBooksByTitle = () => {
+    const filteredBooks = books.filter((book) => book.title)
+
+    const sortedBooks = filteredBooks.sort((a, b) => {
+      const titleA = a.title.toLowerCase()
+      const titleB = b.title.toLowerCase()
+
+      if (titleA < titleB) return -1
+      if (titleA > titleB) return 1
+      return 0
+    })
+
+    return sortedBooks
   }
 
   useEffect(() => {
@@ -90,18 +130,36 @@ export default function Navbar({
     if (user) {
       return (
         <div className="max-w-screen-xl flex justify-between items-center gap-2 mx-auto p-4">
-          <div id="bookButtons" className="flex gap-3">
-            <button
-              className="border px-2 py-2 rounded"
-              onClick={(e) => setModalStatus((prevModalStatus) => !prevModalStatus)}>
-              Add new book
-            </button>
-            <button>
-              <FontAwesomeIcon icon={faArrowUpWideShort} size="lg" />
-            </button>
-            <button>
-              <FontAwesomeIcon icon={faArrowUpZA} size="lg" />
-            </button>
+          <div id="bookButtons" className="flex">
+            {searchBar ? null : (
+              <div className="flex gap-2">
+                <button
+                  className="border px-2 py-2 rounded"
+                  onClick={(e) => setModalStatus((prevModalStatus) => !prevModalStatus)}>
+                  Add new book
+                </button>
+                <Tooltip text="Sort by recently updated">
+                  <button>
+                    <FontAwesomeIcon
+                      aria-label="sortByDate"
+                      icon={faArrowUpWideShort}
+                      onClick={(e) => setBooks(filterBooksbyDate)}
+                      size="lg"
+                    />
+                  </button>
+                </Tooltip>
+                <Tooltip text="Sort by title">
+                  <button>
+                    <FontAwesomeIcon
+                      aria-label="sortByTitle"
+                      icon={faArrowUpZA}
+                      onClick={(e) => setBooks(filterBooksByTitle)}
+                      size="lg"
+                    />
+                  </button>
+                </Tooltip>
+              </div>
+            )}
 
             <div style={{ display: "flex", alignItems: "center" }}>
               {searchBar ? (
@@ -116,9 +174,11 @@ export default function Navbar({
                 />
               ) : null}
 
-              <button className={`mx-4`} onClick={toggleSearchBar} style={{ order: 2 }}>
-                <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
-              </button>
+              <Tooltip text="Search for book">
+                <button className={`mx-4 relative bottom-2`} onClick={toggleSearchBar} style={{ order: 2 }}>
+                  <FontAwesomeIcon icon={faMagnifyingGlass} size="lg" />
+                </button>
+              </Tooltip>
             </div>
           </div>
           <div id="userProfile" className="flex flex-col items-center md:order-2">

@@ -10,50 +10,9 @@ import firebaseApp from "@/firebase/config"
 import { getAuth } from "firebase/auth"
 import Book from "@/components/book/book"
 import Modal from "react-modal"
+import moment from "moment"
 
 const auth = getAuth(firebaseApp)
-
-// const randomBooks = [
-//   {
-//     id: 1,
-//     title: "The Silent Patient",
-//     fbUserId: "user1",
-//     current_page: 50,
-//     total_pages: 320,
-//     author: "Alex Michaelides",
-//     cover_url: {
-//       medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
-//       large: "https://example.com/large_cover1.jpg",
-//     },
-//     review: "A gripping psychological thriller.",
-//   },
-//   {
-//     id: 2,
-//     title: "The Great Gatsby",
-//     fbUserId: "user2",
-//     current_page: 100,
-//     total_pages: 180,
-//     author: "F. Scott Fitzgerald",
-//     cover_url: {
-//       medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
-//       large: "https://example.com/large_cover2.jpg",
-//     },
-//     review: "A classic American novel.",
-//   },
-//   {
-//     id: 3,
-//     title: "To Kill a Mockingbird",
-//     fbUserId: "user3",
-//     current_page: 75,
-//     total_pages: 280,
-//     author: "Harper Lee",
-//     cover_url: {
-//       medium: "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png",
-//       large: "https://example.com/large_cover3.jpg",
-//     },
-//     review: "A thought-provoking story of justice and morality.",
-//   },
-// ]
 
 export default function Home() {
   const [user, error] = useAuthState(auth)
@@ -63,20 +22,32 @@ export default function Home() {
   const [modalStatus, setModalStatus] = useState(false)
   const [loading, setLoading] = useState(false)
   const [submissionError, setSubmissionError] = useState("")
+
+  const [formData, setFormData] = useState({
+    title: "",
+    fbUserId: user?.uid,
+    current_page: 0,
+    total_pages: 1000,
+    review: "",
+  })
+
   const onEdit = useCallback(
     (id: string | number, review?: string, current_page?: number, total_pages?: number) => {
       const matchedBooks = books?.map((book) => {
         if (book.id === id) {
           if (review) {
             const newBook = { ...book, review }
+            newBook.updatedAt = moment().utc().format("YYYY-MM-DD HH:mm:ss")
             return newBook
           }
           if (current_page) {
             const newBook = { ...book, current_page }
+            newBook.updatedAt = moment().utc().format("YYYY-MM-DD HH:mm:ss")
             return newBook
           }
           if (total_pages) {
             const newBook = { ...book, total_pages }
+            newBook.updatedAt = moment().utc().format("YYYY-MM-DD HH:mm:ss")
             return newBook
           }
         }
@@ -86,14 +57,6 @@ export default function Home() {
     },
     [books]
   )
-
-  const [formData, setFormData] = useState({
-    title: "",
-    fbUserId: user?.uid,
-    current_page: 0,
-    total_pages: 1000,
-    review: "",
-  })
 
   const closeModal = () => setModalStatus(false)
 
@@ -192,6 +155,7 @@ export default function Home() {
         current_page: parseInt(current_page as string),
         total_pages: parseInt(total_pages as string),
         review: review as string,
+        createAt: moment().utc().format("YYYY-MM-DD HH:mm:ss"),
       },
     ])
     setLoading(false)
@@ -199,11 +163,16 @@ export default function Home() {
   }
 
   console.log("books ", books)
-  console.log("filtered books ", filteredBooks)
+
   return (
     <>
       <CyclingBackground />
-      <Navbar setFilteredBooks={setFilteredBooks} books={books} setModalStatus={setModalStatus} />
+      <Navbar
+        setBooks={setBooks}
+        setFilteredBooks={setFilteredBooks}
+        books={books}
+        setModalStatus={setModalStatus}
+      />
       <Modal
         className="inline-block"
         isOpen={modalStatus}
