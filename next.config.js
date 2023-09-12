@@ -28,6 +28,12 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: "/api/:spotify*",
+        headers: [
+          { key: "Cache-Control", value: "public, s-maxage=86400, stale-while-revalidate=43200" },
+        ],
+      },
     ]
   },
 }

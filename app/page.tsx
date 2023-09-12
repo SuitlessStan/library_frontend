@@ -11,6 +11,7 @@ import { getAuth } from "firebase/auth"
 import Book from "@/components/book/book"
 import Modal from "react-modal"
 import moment from "moment"
+import Paginate from "@/components/paginate/paginate"
 
 const auth = getAuth(firebaseApp)
 
@@ -18,6 +19,28 @@ export default function Home() {
   const [user, error] = useAuthState(auth)
   const [books, setBooks] = useState<Book[]>([])
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([])
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const [booksPerPage] = useState(5)
+
+  const lastBookIndex = currentPage * booksPerPage
+  const firstBookIndex = lastBookIndex - booksPerPage
+  const currentBooks = books.slice(firstBookIndex, lastBookIndex)
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
+
+  const previousPage = () => {
+    if (currentPage !== 1) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  const nextPage = () => {
+    if (currentPage !== Math.ceil(books.length / booksPerPage)) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
 
   const [modalStatus, setModalStatus] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -59,6 +82,7 @@ export default function Home() {
   )
 
   const closeModal = () => setModalStatus(false)
+  const loggedIn = user ? " " : "hidden"
 
   const renderAuthLinks = () => {
     if (!user) {
@@ -321,12 +345,22 @@ export default function Home() {
         </div>
       </Modal>
       {renderAuthLinks()}
-      <div id="bookDisplay" className="absolute top-20 px-4 flex justify-center items-center">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+      <div
+        id="bookDisplay"
+        className="absolute top-20 px-4 flex flex-col gap-2 justify-center items-center">
+        <div
+          className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 ${loggedIn}`}>
           {filteredBooks.length > 0
             ? filteredBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)
             : books.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)}
         </div>
+        <Paginate
+          previousPage={previousPage}
+          nextPage={nextPage}
+          booksPerPage={booksPerPage}
+          totalBooks={books.length}
+          paginate={paginate}
+        />
       </div>
     </>
   )
