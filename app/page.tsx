@@ -15,6 +15,61 @@ import Paginate from "@/components/paginate/paginate"
 
 const auth = getAuth(firebaseApp)
 
+const randomBooks: Book[] = [
+  {
+    title: "The Catcher in the Rye",
+    id: "1",
+    createAt: moment().utc().format("YYYY-MM-DD HH:mm:ss"),
+    updatedAt: new Date(),
+    fbUserId: "123456789",
+    current_page: 50,
+    total_pages: 240,
+    author: "J.D. Salinger",
+    cover_url: {
+      medium: "http://example.com/catcher_medium.jpg",
+      large: "http://example.com/catcher_large.jpg",
+    },
+    review: "A classic coming-of-age novel with a memorable protagonist.",
+  },
+  {
+    title: "To Kill a Mockingbird",
+    id: 2,
+    createAt: new Date(),
+    fbUserId: "987654321",
+    current_page: 75,
+    total_pages: 250,
+    author: "Harper Lee",
+    cover_url: {
+      medium: "http://example.com/mockingbird_medium.jpg",
+      large: "http://example.com/mockingbird_large.jpg",
+    },
+    review: "A powerful story of racial injustice and moral growth.",
+  },
+  {
+    title: "1984",
+    id: "3",
+    createAt: "2023-09-10T08:30:00Z",
+    updatedAt: "2023-09-12T15:45:00Z",
+    inactiveAt: new Date(),
+    fbUserId: "555555555",
+    current_page: 40,
+    total_pages: 300,
+    review: "A dystopian masterpiece that warns of totalitarianism.",
+  },
+  {
+    title: "Pride and Prejudice",
+    id: "4",
+    createAt: "2023-09-05T10:15:00Z",
+    updatedAt: "2023-09-11T11:20:00Z",
+    inactiveAt: "2023-09-13T09:00:00Z",
+    fbUserId: "111111111",
+    current_page: 120,
+    total_pages: 450,
+    author: "Jane Austen",
+    review: "A timeless romance with wit and social commentary.",
+  },
+]
+
 export default function Home() {
   const [user, error] = useAuthState(auth)
   const [books, setBooks] = useState<Book[]>([])
@@ -192,7 +247,7 @@ export default function Home() {
       <Navbar
         setBooks={setBooks}
         setFilteredBooks={setFilteredBooks}
-        books={books}
+        books={currentBooks}
         setModalStatus={setModalStatus}
       />
       <Modal
@@ -352,15 +407,17 @@ export default function Home() {
           className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 ${loggedIn}`}>
           {filteredBooks.length > 0
             ? filteredBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)
-            : books.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)}
+            : currentBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)}
         </div>
-        <Paginate
-          previousPage={previousPage}
-          nextPage={nextPage}
-          booksPerPage={booksPerPage}
-          totalBooks={books.length}
-          paginate={paginate}
-        />
+        {user && (
+          <Paginate
+            previousPage={previousPage}
+            nextPage={nextPage}
+            booksPerPage={booksPerPage}
+            totalBooks={books.length}
+            paginate={paginate}
+          />
+        )}
       </div>
     </>
   )
