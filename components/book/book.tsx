@@ -201,10 +201,8 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
         <p className="text-sm p-2 h-20 text-left shadow-lg text-white mt-2 text-ellipsis overflow-auto">
           {displayedContent}
           {review.split("\n").length > 1 && (
-            <button
-              onClick={toggleContent}
-              className="bg-white text-primary py-1 px-2 cursor-pointer rounded">
-              {showFullContent ? "See Less" : "See More"}
+            <button onClick={toggleContent} className="cursor-pointer rounded text-primary text-xs">
+              <u>{showFullContent ? "See Less" : "See More"}</u>
             </button>
           )}
         </p>
