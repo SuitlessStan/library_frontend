@@ -20,5 +20,29 @@ export async function GET(req: NextApiRequest, { params }) {
     }
   }
 }
-export async function POST() {}
+export async function POST(req: NextApiRequest, { params }) {
+  if (req.headers) {
+    const headers = {
+      authentication: req.headers.get("authentication"),
+    }
+
+    const body = await req.json()
+    console.log("request body ", body)
+    const options = {
+      method: "POST",
+      url: `${apiUrl}/users/${params.book}/books`,
+      headers: headers,
+      data: body,
+    }
+
+    try {
+      if (body) {
+        const response = await axios.request(options)
+        return NextResponse.json({ response }, { status: 200 })
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+}
 export async function PATCH() {}

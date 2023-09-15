@@ -7,6 +7,7 @@ import { useWindowSize } from "usehooks-ts"
 import ProgressBar from "@ramonak/react-progress-bar"
 import { If, Else, Then } from "react-if"
 import moment from "moment"
+import Tooltip from "../Tooltip/Tooltip"
 
 let customStyles = {
   content: {
@@ -14,12 +15,12 @@ let customStyles = {
     left: 0,
     right: 0,
     bottom: 0,
-    width: "22rem",
-    height: "21rem",
+    width: "21rem",
+    height: "20rem",
     transform: "translate(-50%, -50%)",
     background: "black",
     color: "none",
-    padding: "1rem 1.5rem",
+    padding: "16px",
   },
   overlay: {
     background: "none",
@@ -27,14 +28,18 @@ let customStyles = {
   },
 }
 
+let progressModalStyles = {
+  ...customStyles,
+  content: {
+    ...customStyles.content,
+    width: "12rem", // Change the width value
+    height: "11rem", // Change the height value
+  },
+}
+
 type BookData = {
   book: Book
-  onEdit: (
-    id: string | number,
-    review?: string,
-    current_page?: number,
-    total_pages?: number
-  ) => void
+  onEdit: (id: string | number, params: any[]) => void
 }
 
 const Book: React.FC<BookData> = ({ book, onEdit }) => {
@@ -44,19 +49,25 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
   const [bookReview, setBookReview] = useState(review)
   const [progress, setProgress] = useState(false)
   const [modalIsOpen, setModalOpen] = useState(false)
+  const [showFullContent, setShowFullContent] = useState(false)
   const [pages, setPages] = useState({
     currentPage: current_page,
     totalPages: total_pages,
   })
 
   const buttonRef = useRef<HTMLButtonElement | null>(null)
+  const editReviewRef = useRef<HTMLButtonElement | null>(null)
 
   const size = useWindowSize()
 
   const openModal = () => setModalOpen(true)
   const closeModal = () => setModalOpen(false)
 
+  const closeProgressModal = () => setProgress(false)
+
   const toggleProgress = () => setProgress((prevState) => !prevState)
+
+  const toggleContent = () => setShowFullContent((prevState) => !prevState)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setBookReview(e.target.value)
@@ -91,6 +102,34 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
       }
     }
 
+    if (editReviewRef.current) {
+      const buttonRect = editReviewRef.current.getBoundingClientRect()
+
+      const remToPixelRatio = parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+      const modalWidthRem = 12
+      const modalHeightRem = 10
+
+      const modalWidth = modalWidthRem * remToPixelRatio
+      const modalHeight = modalHeightRem * remToPixelRatio
+
+      const modalLeft = buttonRect.left + window.scrollX
+      const modalTop = buttonRect.top + window.scrollY
+
+      // Define a margin to ensure the modal stays within the screen boundaries
+      const margin = 200
+
+      const adjustedLeft = Math.max(margin, Math.min(modalLeft, size.width - modalWidth - margin))
+      const adjustedTop = Math.max(margin, Math.min(modalTop, size.height - modalHeight))
+
+      return {
+        left: adjustedLeft,
+        top: adjustedTop,
+        right: adjustedLeft + modalWidth,
+        bottom: adjustedTop + modalHeight,
+      }
+    }
+
     return {}
   }
 
@@ -104,36 +143,51 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
     }
   }
 
-  updatedAt = updatedAt ? updatedAt : createAt
+  if (editReviewRef.current) {
+    const { left, top, right, bottom } = caclulateModalPosition()
+    if (left && top && bottom && right) {
+      progressModalStyles.content.top = top
+      progressModalStyles.content.left = left
+      progressModalStyles.content.bottom = bottom
+      progressModalStyles.content.right = right
+    }
+  }
 
   current_page = current_page ? current_page : 0
   total_pages = total_pages ? total_pages : 1000
 
-  const imageUrl = cover_url
-    ? cover_url.medium
-    : "https://upload.wikimedia.org/wikipedia/en/4/4b/Crimeandpunishmentcover.png"
+  const displayedContent = showFullContent ? review : review.split("\n").slice(0, 3).join("\n")
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+  const imageUrl = cover_url ? cover_url[1].large : ""
+
+  const handleSubmitReview: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
-    if (id) onEdit(id, bookReview)
+    const formattedValue = bookReview
+      .split("\n")
+      .map((line) => line.replace(/^\s+|\s+$/g, ""))
+      .map((line) => line.charAt(0).toUpperCase() + line.slice(1))
+      .join("\n")
+    setBookReview(formattedValue)
+
+    if (id) onEdit(id, [{ bookReview: formattedValue }])
     closeModal()
   }
 
-  const handleConfirm: MouseEventHandler<HTMLButtonElement> = (e) => {
+  const handleEditProgress: MouseEventHandler<HTMLButtonElement> = (e) => {
     if (pages.currentPage) {
-      onEdit(id as string, undefined, pages.currentPage, undefined)
+      onEdit(id as string, [{ currentPage: pages.currentPage }])
     }
     if (pages.totalPages) {
-      onEdit(id as string, undefined, undefined, pages.totalPages)
+      onEdit(id as string, [{ totalPages: pages.totalPages }])
     }
     if (pages.currentPage && pages.totalPages) {
-      onEdit(id as string, undefined, pages.currentPage, pages.totalPages)
+      onEdit(id as string, [{ currentPage: pages.currentPage }, { totalPages: pages.totalPages }])
     }
     setProgress(false)
   }
 
   return (
-    <div className="max-w-sm overflow shadow-lg text-center p-2 border-2 border-t-0 border-black dark:border-white bg-black">
+    <div className="shadow-lg rounded text-center border-1 border-black bg-tertiary">
       <Image
         width={200}
         height={200}
@@ -141,62 +195,93 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
         src={imageUrl}
         alt="Sunset in the mountains"
       />
-      <div className="py-2">
-        <div className="font-bold h-16 md:h-20 text-white text-md md:text-2xl mb-2">
-          {title} <br />
-          <span className="inline-block text-white text-sm">{author}</span>
-        </div>
-        <p className="text-sm h-20 overflow-y-scroll text-white">{review}</p>
+      <div className="py-1">
+        <h3 className="font-bold text-white text-md md:text-2xl mb-1">{title}</h3>
+        <span className="inline-block text-white font-bold text-sm mb-2">{author}</span>
+        <p className="text-sm p-2 h-20 text-left shadow-lg text-white mt-2 text-ellipsis overflow-auto">
+          {displayedContent}
+          {review.split("\n").length > 1 && (
+            <button
+              onClick={toggleContent}
+              className="bg-white text-primary py-1 px-2 cursor-pointer rounded">
+              {showFullContent ? "See Less" : "See More"}
+            </button>
+          )}
+        </p>
         <span className="inline-block text-xs opacity-80">
-          {updatedAt ? updatedAt.toLocaleString() : createAt?.toLocaleString()}
+          {moment(updatedAt).format("DD MMM HH:mm")}
         </span>
-        <span className="px-2 block my-2">
+        <span className="px-2 block">
           <div className="flex justify-between text-sm md:text-md text-white">
             <button ref={buttonRef} onClick={openModal}>
-              <u className="text-sm md:text-md">Edit review</u>
+              <Tooltip text="edit book review" className="mb-2">
+                <u className="text-xs md:text-md">Edit review</u>
+              </Tooltip>
             </button>
-            <button onClick={toggleProgress}>
-              <u className="text-sm md:text-md">Edit progress</u>
+            <button ref={editReviewRef} onClick={toggleProgress}>
+              <Tooltip text="edit your current page" className="mb-2">
+                <u className="text-xs md:text-md">Edit progress</u>
+              </Tooltip>
             </button>
           </div>
           <If condition={progress === true}>
             <Then>
-              <div className="progress-section">
-                <input
-                  type="number"
-                  className="w-full p-1 border-none rounded-sm text-black"
-                  name="currentPage"
-                  id="currentPage"
-                  value={pages.currentPage as number}
-                  onChange={(e) =>
-                    setPages({ currentPage: parseInt(e.target.value), totalPages: total_pages })
-                  }
-                />
-                <input
-                  type="number"
-                  className="w-full p-1 border-none rounded-sm text-black"
-                  name="pagesCount"
-                  id="pagesCount"
-                  value={pages.totalPages as number}
-                  onChange={(e) =>
-                    setPages({ currentPage: current_page, totalPages: parseInt(e.target.value) })
-                  }
-                />
-              </div>
-              <div className="flex gap-2 justify-center">
-                <button className="bg-blue-700 py-1 px-2 rounded" onClick={handleConfirm}>
-                  Update
-                </button>
-                <button
-                  className="bg-red-500 py-1 px-2 rounded"
-                  onClick={(e) => setProgress(false)}>
-                  Cancel
-                </button>
-              </div>
+              <Modal
+                style={progressModalStyles}
+                contentLabel="Progress"
+                isOpen={progress}
+                ariaHideApp={false}
+                onRequestClose={closeProgressModal}>
+                <div className="progress-section">
+                  <label htmlFor="currentPage" className="text-xs">
+                    Current page
+                    <input
+                      type="number"
+                      className="w-full p-1 border-none rounded-sm text-black"
+                      name="currentPage"
+                      placeholder="current page"
+                      id="currentPage"
+                      value={pages.currentPage as number}
+                      onChange={(e) =>
+                        setPages({ currentPage: parseInt(e.target.value), totalPages: total_pages })
+                      }
+                    />
+                  </label>
+                  <label htmlFor="pagesCount" className="text-xs">
+                    Total pages
+                    <input
+                      type="number"
+                      className="w-full p-1 border-none rounded-sm text-black"
+                      name="pagesCount"
+                      placeholder="total pages"
+                      id="pagesCount"
+                      value={pages.totalPages as number}
+                      onChange={(e) =>
+                        setPages({
+                          currentPage: current_page,
+                          totalPages: parseInt(e.target.value),
+                        })
+                      }
+                    />
+                  </label>
+                </div>
+                <div className="flex gap-2 justify-center mt-5">
+                  <button
+                    className="text-xs md:text-md dark:bg-secondary dark:text-primary bg-primary text-secondary hover:bg-tertiary hover:text-secondary py-1 px-2 rounded"
+                    onClick={handleEditProgress}>
+                    Update
+                  </button>
+                  <button
+                    className="text-xs md:text-md dark:bg-secondary dark:text-primary bg-primary text-secondary hover:bg-tertiary hover:text-secondary py-1 px-2 rounded"
+                    onClick={(e) => setProgress(false)}>
+                    Cancel
+                  </button>
+                </div>
+              </Modal>
             </Then>
             <Else>
               <ProgressBar
-                bgColor="#1d4ed8"
+                bgColor="#000"
                 className="my-2"
                 animateOnRender
                 isLabelVisible={true}
@@ -212,7 +297,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
           ariaHideApp={false}
           onRequestClose={closeModal}>
           <span className="block my-2">Edit your book review</span>
-          <form action="" method="post" onSubmit={handleSubmit}>
+          <form action="" method="post" onSubmit={handleSubmitReview}>
             <textarea
               name="bookReview"
               onChange={handleChange}
@@ -224,14 +309,14 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
             <div className="flex justify-center gap-5">
               <button
                 type="submit"
-                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                className="text-xs md:text-md dark:bg-secondary dark:text-primary bg-primary text-secondary hover:bg-tertiary hover:text-secondary  px-3 py-1">
                 Save
               </button>
               <button
                 data-modal-hide="bookModal"
                 type="button"
                 onClick={closeModal}
-                className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+                className="text-xs md:text-md dark:bg-secondary dark:text-primary bg-primary text-secondary hover:bg-tertiary hover:text-secondary  px-3 py-1">
                 Cancel
               </button>
             </div>

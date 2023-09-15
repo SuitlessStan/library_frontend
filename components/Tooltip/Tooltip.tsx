@@ -5,9 +5,10 @@ type TooltipProps = {
   text: string
   children: React.ReactNode
   style?: CSSProperties
+  className?: string
 }
 
-const Tooltip = ({ text, children, style }: TooltipProps) => {
+const Tooltip = ({ text, children, style, className }: TooltipProps) => {
   const [showTooltip, setShowToolip] = useState(false)
 
   const handleMouseEnter = () => setShowToolip(true)
@@ -15,7 +16,7 @@ const Tooltip = ({ text, children, style }: TooltipProps) => {
 
   return (
     <div
-      className="tooltip-container"
+      className={`tooltip-container ${className}`}
       style={style}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}>

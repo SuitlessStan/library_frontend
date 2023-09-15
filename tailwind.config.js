@@ -14,6 +14,13 @@ module.exports = {
       fontFamily: {
         Roboto: ["Roboto"],
       },
+      colors: {
+        primary: "#000",
+        secondary: "#fff",
+        tertiary: "#808080",
+        onyx: "#404040",
+        silver: "#C0C0C0",
+      },
     },
   },
   plugins: [],

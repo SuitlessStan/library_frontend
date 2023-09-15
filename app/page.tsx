@@ -1,6 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback, FormEventHandler, MouseEvent } from "react"
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useTransition,
+  FormEventHandler,
+  MouseEvent,
+} from "react"
 import axios from "axios"
 import Link from "next/link"
 import CyclingBackground from "@/components/cyclingBackground/cyclingBackground"
@@ -19,6 +26,7 @@ export default function Home() {
   const [user, error] = useAuthState(auth)
   const [books, setBooks] = useState<Book[]>([])
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([])
+  const [isPending, startTransition] = useTransition()
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -26,7 +34,7 @@ export default function Home() {
 
   const lastBookIndex = currentPage * booksPerPage
   const firstBookIndex = lastBookIndex - booksPerPage
-  const currentBooks = books.slice(firstBookIndex, lastBookIndex)
+  const currentBooks = books?.slice(firstBookIndex, lastBookIndex)
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
 
@@ -55,31 +63,92 @@ export default function Home() {
   })
 
   const onEdit = useCallback(
-    (id: string | number, review?: string, current_page?: number, total_pages?: number) => {
+    (id: string | number, params: any[]) => {
       const matchedBooks = books?.map((book) => {
         if (book.id === id) {
-          if (review) {
-            const newBook = { ...book, review }
-            newBook.updatedAt = moment().utc().format("YYYY-MM-DD HH:mm:ss")
-            return newBook
-          }
-          if (current_page) {
-            const newBook = { ...book, current_page }
-            newBook.updatedAt = moment().utc().format("YYYY-MM-DD HH:mm:ss")
-            return newBook
-          }
-          if (total_pages) {
-            const newBook = { ...book, total_pages }
-            newBook.updatedAt = moment().utc().format("YYYY-MM-DD HH:mm:ss")
-            return newBook
-          }
+          let newBook = { ...book }
+
+          params.forEach((param) => {
+            if (param.bookReview) {
+              newBook = { ...newBook, review: param.bookReview }
+            }
+            if (param.currentPage) {
+              newBook = { ...newBook, current_page: param.currentPage }
+            }
+            if (param.totalPages) {
+              newBook = { ...newBook, total_pages: param.totalPages }
+            }
+          })
+
+          newBook.updatedAt = moment().utc().format("YYYY-MM-DD HH:mm:ss")
+          return newBook
         }
         return book
       })
+
       setBooks(matchedBooks)
     },
     [books]
   )
+
+  const fetchUserBooks = async () => {
+    try {
+      const token = await user?.getIdToken(true)
+      const requestConfig = {
+        headers: {
+          authentication: token,
+        },
+      }
+      const response = await axios.get(`api/books/${user?.uid}`, requestConfig)
+      if (response.status == 200) {
+        console.log("fetched books ", response.data.result.results)
+        setBooks(response.data.result.results)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const submitBooks = async () => {
+    const token = await user?.getIdToken(true)
+    const headers = {
+      authentication: token,
+    }
+    let data
+
+    const options = {
+      method: "POST",
+      url: `api/books/${user?.uid}`,
+      headers: headers,
+      data: data as any,
+    }
+
+    try {
+      const response = await axios.get(`/api/books/${user?.uid}`, { headers })
+      // const existingBooks = response.results
+
+      // Filter out books that are already in the database
+      const newBooks = books.filter(
+        (book) => !existingBooks.some((existingBook: Book) => existingBook.title === book.title)
+      )
+
+      for (const book of newBooks) {
+        const { title, current_page, total_pages, review } = book
+        const requestBody = {
+          title: title,
+          current_page: current_page,
+          total_pages: total_pages,
+          review: review,
+        }
+
+        options.data = requestBody
+
+        await axios.request(options)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   const closeModal = () => setModalStatus(false)
   const loggedIn = user ? " " : "hidden"
@@ -116,23 +185,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    const fetchUserBooks = async () => {
-      try {
-        const token = await user?.getIdToken(true)
-        const requestConfig = {
-          headers: {
-            authentication: token,
-          },
-        }
-        const response = await axios.get(`api/books/${user?.uid}`, requestConfig)
-        if (response.status == 200) {
-          const results = response.data.result.results
-        }
-      } catch (err) {
-        console.error(err)
-      }
-    }
-    // fetchUserBooks()
+    fetchUserBooks()
   }, [user])
 
   useEffect(() => {
@@ -171,6 +224,8 @@ export default function Home() {
       return
     }
     const fbUserId = user?.uid
+
+    await submitBooks()
     setBooks((prevBooksArray) => [
       ...(prevBooksArray as any[]),
       {
@@ -183,6 +238,7 @@ export default function Home() {
         createAt: moment().utc().format("YYYY-MM-DD HH:mm:ss"),
       },
     ])
+
     setLoading(false)
     closeModal()
   }
@@ -346,25 +402,23 @@ export default function Home() {
         </div>
       </Modal>
       {renderAuthLinks()}
-      <div
-        id="bookDisplay"
-        className="absolute top-20 px-4 flex flex-col gap-2 justify-center items-center">
+      <div id="bookDisplay" className="absolute top-20 px-4 flex gap-1 justify-center items-center">
         <div
           className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 ${loggedIn}`}>
           {filteredBooks.length > 0
             ? filteredBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)
             : currentBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)}
         </div>
-        {user && (
-          <Paginate
-            previousPage={previousPage}
-            nextPage={nextPage}
-            booksPerPage={booksPerPage}
-            totalBooks={books.length}
-            paginate={paginate}
-          />
-        )}
       </div>
+      {user && (
+        <Paginate
+          previousPage={previousPage}
+          nextPage={nextPage}
+          booksPerPage={booksPerPage}
+          totalBooks={books.length}
+          paginate={paginate}
+        />
+      )}
     </>
   )
 }

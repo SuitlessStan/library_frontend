@@ -39,9 +39,6 @@ export type Book = {
   current_page: number | null
   total_pages: number | null | undefined
   author?: string
-  cover_url?: {
-    medium: string
-    large: string
-  }
+  cover_url?: { medium: string; large: string }[]
   review: string
 }

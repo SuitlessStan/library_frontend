@@ -1,4 +1,5 @@
 import React from "react"
+import "./paginate.css"
 
 const Paginate = ({
   booksPerPage,
@@ -24,20 +25,18 @@ const Paginate = ({
       <ul className="pagination flex gap-2">
         <li
           onClick={previousPage}
-          className="page-number bg-blue-400 p-1 rounded text-black cursor-pointer">
+          className="page-number bg-black text-white dark:bg-white p-1 rounded dark:text-black cursor-pointer">
           Prev
         </li>
         {pageNumbers.map((number) => (
           <li
             key={number}
             onClick={() => paginate(number)}
-            className="page-number bg-blue-400 p-1 rounded text-black">
+            className="page-number bg-black text-white dark:bg-white p-1 rounded dark:text-black">
             {number}
           </li>
         ))}
-        <li
-          onClick={nextPage}
-          className="page-number bg-blue-400 p-1 rounded text-black cursor-pointer">
+        <li onClick={nextPage} className="page-number bg-black text-white dark:bg-white p-1 rounded dark:text-black cursor-pointer">
           Next
         </li>
       </ul>

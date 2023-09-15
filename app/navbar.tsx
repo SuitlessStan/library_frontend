@@ -141,7 +141,7 @@ export default function Navbar({
             {searchBar ? null : (
               <div className="flex gap-2">
                 <button
-                  className="border px-2 py-2 rounded"
+                  className="border text-sm md:text-md hover:bg-black hover:text-white dark:bg-white dark:text-black bg-black text-white px-2 py-2 rounded"
                   onClick={(e) => setModalStatus((prevModalStatus) => !prevModalStatus)}>
                   Add new book
                 </button>

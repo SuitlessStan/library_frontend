@@ -52,7 +52,8 @@ export default function CyclingBackground() {
     opacity: opacity,
     backgroundPosition: "center",
     backgroundRepeat: "repeat-y",
+    height: "100vh",
   }
 
-  return <div className="cyclingBackground absolute top-16" style={backgroundImageStyle}></div>
+  return <div className="cyclingBackground" style={backgroundImageStyle}></div>
 }
