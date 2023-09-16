@@ -1,13 +1,6 @@
 "use client"
 
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useTransition,
-  FormEventHandler,
-  MouseEvent,
-} from "react"
+import { useState, useEffect, useCallback, FormEventHandler, MouseEvent } from "react"
 import axios from "axios"
 import Link from "next/link"
 import CyclingBackground from "@/components/cyclingBackground/cyclingBackground"
@@ -19,6 +12,7 @@ import Book from "@/components/book/book"
 import Modal from "react-modal"
 import moment from "moment"
 import Paginate from "@/components/paginate/paginate"
+import { getUniqueListBy } from "@/utils/helpers"
 
 const auth = getAuth(firebaseApp)
 
@@ -26,7 +20,6 @@ export default function Home() {
   const [user, error] = useAuthState(auth)
   const [books, setBooks] = useState<Book[]>([])
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([])
-  const [isPending, startTransition] = useTransition()
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -101,8 +94,13 @@ export default function Home() {
       }
       const response = await axios.get(`api/books/${user?.uid}`, requestConfig)
       if (response.status == 200) {
-        console.log("fetched books ", response.data.result.results)
-        setBooks(response.data.result.results)
+        for (const book of response.data.result.results) {
+          const titleExists = books.some((existingBook) => existingBook.title === book.title)
+
+          if (!titleExists) {
+            setBooks((prevBooks) => [...prevBooks, book])
+          }
+        }
       }
     } catch (err) {
       console.error(err)
@@ -125,7 +123,7 @@ export default function Home() {
 
     try {
       const response = await axios.get(`/api/books/${user?.uid}`, { headers })
-      // const existingBooks = response.results
+      const existingBooks = response.data.result.results
 
       // Filter out books that are already in the database
       const newBooks = books.filter(
@@ -153,29 +151,6 @@ export default function Home() {
   const closeModal = () => setModalStatus(false)
   const loggedIn = user ? " " : "hidden"
 
-  const renderAuthLinks = () => {
-    if (!user) {
-      return (
-        <div className="flex flex-col justify-center items-center px-4 z-10 relative top-60 text-center">
-          <h1 className="text-4xl mt-10 font-Roboto">Virtual Library</h1>
-          <span className="text-2xl font-Roboto shadow-sm mb-5 italic">
-            Start your own personal experience!
-          </span>
-          <Link
-            href="/signup"
-            className="px-2 py-1 my-2 border rounded bg-white text-black text-md opacity-90">
-            Join now!
-          </Link>
-          <Link
-            href="/login"
-            className="px-2 py-1 border rounded bg-white text-black text-md opacity-90">
-            Already a member
-          </Link>
-        </div>
-      )
-    }
-  }
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prevData) => ({
@@ -199,7 +174,8 @@ export default function Home() {
     if (!books?.length) {
       return
     }
-    localStorage.setItem("books", JSON.stringify(books))
+
+    localStorage.setItem("books", JSON.stringify(getUniqueListBy(books, "title")))
   }, [books])
 
   const { title, current_page, total_pages, review } = formData
@@ -241,6 +217,29 @@ export default function Home() {
 
     setLoading(false)
     closeModal()
+  }
+
+  const renderAuthLinks = () => {
+    if (!user) {
+      return (
+        <div className="flex flex-col justify-center items-center px-4 z-10 relative top-60 text-center">
+          <h1 className="text-4xl mt-10 font-Roboto">Virtual Library</h1>
+          <span className="text-2xl font-Roboto shadow-sm mb-5 italic">
+            Start your own personal experience!
+          </span>
+          <Link
+            href="/signup"
+            className="px-2 py-1 my-2 border rounded bg-white text-black text-md opacity-90">
+            Join now!
+          </Link>
+          <Link
+            href="/login"
+            className="px-2 py-1 border rounded bg-white text-black text-md opacity-90">
+            Already a member
+          </Link>
+        </div>
+      )
+    }
   }
 
   return (

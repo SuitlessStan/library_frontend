@@ -1,5 +1,11 @@
 .pagination-container {
   position: absolute;
-  bottom: 5%;
+  bottom: 2%;
   left: 50%;
+}
+
+@media (max-width: 768px) {
+  .pagination-container {
+    left: 35%;
+  }
 }

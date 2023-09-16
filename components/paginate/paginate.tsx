@@ -25,18 +25,20 @@ const Paginate = ({
       <ul className="pagination flex gap-2">
         <li
           onClick={previousPage}
-          className="page-number bg-black text-white dark:bg-white p-1 rounded dark:text-black cursor-pointer">
+          className="page-number bg-black text-white dark:bg-white hover:bg-primary hover:text-secondary px-3 py-2 rounded dark:text-black cursor-pointer">
           Prev
         </li>
         {pageNumbers.map((number) => (
           <li
             key={number}
             onClick={() => paginate(number)}
-            className="page-number bg-black text-white dark:bg-white p-1 rounded dark:text-black">
+            className="page-number bg-black text-white dark:bg-white hover:bg-silver hover:text-primary px-2 py-2 rounded dark:text-black">
             {number}
           </li>
         ))}
-        <li onClick={nextPage} className="page-number bg-black text-white dark:bg-white p-1 rounded dark:text-black cursor-pointer">
+        <li
+          onClick={nextPage}
+          className="page-number bg-black text-white dark:bg-white hover:bg-primary hover:text-secondary px-3 py-2 rounded dark:text-black cursor-pointer">
           Next
         </li>
       </ul>

@@ -46,6 +46,8 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
   let { id, title, review, author, cover_url, current_page, total_pages, createAt, updatedAt } =
     book
 
+  const size = useWindowSize()
+
   const [bookReview, setBookReview] = useState(review)
   const [progress, setProgress] = useState(false)
   const [modalIsOpen, setModalOpen] = useState(false)
@@ -57,8 +59,6 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
 
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const editReviewRef = useRef<HTMLButtonElement | null>(null)
-
-  const size = useWindowSize()
 
   const openModal = () => setModalOpen(true)
   const closeModal = () => setModalOpen(false)
@@ -156,7 +156,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
   current_page = current_page ? current_page : 0
   total_pages = total_pages ? total_pages : 1000
 
-  const displayedContent = showFullContent ? review : review.split("\n").slice(0, 3).join("\n")
+  const displayedContent = showFullContent ? review : review?.split("\n").slice(0, 3).join("\n")
 
   const imageUrl = cover_url ? cover_url[1].large : ""
 
@@ -200,24 +200,24 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
         <span className="inline-block text-white font-bold text-sm mb-2">{author}</span>
         <p className="text-sm p-2 h-20 text-left shadow-lg text-white mt-2 text-ellipsis overflow-auto">
           {displayedContent}
-          {review.split("\n").length > 1 && (
+          {review?.split("\n").length > 1 && (
             <button onClick={toggleContent} className="cursor-pointer rounded text-primary text-xs">
               <u>{showFullContent ? "See Less" : "See More"}</u>
             </button>
           )}
         </p>
         <span className="inline-block text-xs opacity-80">
-          {moment(updatedAt).format("DD MMM HH:mm")}
+          {moment(updatedAt ? updatedAt : createAt).format("DD MMM HH:mm")}
         </span>
         <span className="px-2 block">
           <div className="flex justify-between text-sm md:text-md text-white">
             <button ref={buttonRef} onClick={openModal}>
-              <Tooltip text="edit book review" className="mb-2">
+              <Tooltip text="edit book review" className="mb-2 hidden md:block">
                 <u className="text-xs md:text-md">Edit review</u>
               </Tooltip>
             </button>
             <button ref={editReviewRef} onClick={toggleProgress}>
-              <Tooltip text="edit your current page" className="mb-2">
+              <Tooltip text="edit your current page" className="mb-2 hidden md:block">
                 <u className="text-xs md:text-md">Edit progress</u>
               </Tooltip>
             </button>
