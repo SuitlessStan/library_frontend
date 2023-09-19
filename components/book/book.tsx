@@ -158,7 +158,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
 
   const displayedContent = showFullContent ? review : review?.split("\n").slice(0, 3).join("\n")
 
-  const imageUrl = cover_url ? cover_url[1].large : ""
+  const imageUrl = cover_url ? cover_url[1].large : "/images/book_cover.jpg"
 
   const handleSubmitReview: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
@@ -187,18 +187,20 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
   }
 
   return (
-    <div className="shadow-lg rounded text-center border-1 border-black bg-tertiary">
-      <Image
-        width={200}
-        height={200}
-        className="w-full"
-        src={imageUrl}
-        alt="Sunset in the mountains"
-      />
+    <div className="shadow-lg rounded text-center border-1 border-black bg-tertiary book">
+      <div className="w-full text-center flex justify-center">
+        <Image
+          width={200}
+          height={200}
+          className="book-cover"
+          src={imageUrl}
+          alt="Sunset in the mountains"
+        />
+      </div>
       <div className="py-1">
-        <h3 className="font-bold text-white text-md md:text-2xl mb-1">{title}</h3>
-        <span className="inline-block text-white font-bold text-sm mb-2">{author}</span>
-        <p className="text-sm p-2 h-20 text-left shadow-lg text-white mt-2 text-ellipsis overflow-auto">
+        <h3 className="font-bold text-white text-md md:text-2xl">{title}</h3>
+        <span className="inline-block text-white font-bold text-sm">{author}</span>
+        <p className="text-sm p-2 h-16 text-left shadow-lg text-white mt-2 text-ellipsis overflow-auto">
           {displayedContent}
           {review?.split("\n").length > 1 && (
             <button onClick={toggleContent} className="cursor-pointer rounded text-primary text-xs">
@@ -209,15 +211,15 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
         <span className="inline-block text-xs opacity-80">
           {moment(updatedAt ? updatedAt : createAt).format("DD MMM HH:mm")}
         </span>
-        <span className="px-2 block">
+        <div className="px-2">
           <div className="flex justify-between text-sm md:text-md text-white">
             <button ref={buttonRef} onClick={openModal}>
-              <Tooltip text="edit book review" className="mb-2 hidden md:block">
+              <Tooltip text="edit book review" className="hidden md:block">
                 <u className="text-xs md:text-md">Edit review</u>
               </Tooltip>
             </button>
             <button ref={editReviewRef} onClick={toggleProgress}>
-              <Tooltip text="edit your current page" className="mb-2 hidden md:block">
+              <Tooltip text="edit your current page" className="hidden md:block">
                 <u className="text-xs md:text-md">Edit progress</u>
               </Tooltip>
             </button>
@@ -280,14 +282,14 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
             <Else>
               <ProgressBar
                 bgColor="#000"
-                className="my-2"
+                className="mt-4"
                 animateOnRender
                 isLabelVisible={true}
-                completed={(current_page / total_pages) * 100}
+                completed={((current_page / total_pages) * 100).toFixed(1)}
               />
             </Else>
           </If>
-        </span>
+        </div>
         <Modal
           contentLabel="Review"
           style={customStyles as any}

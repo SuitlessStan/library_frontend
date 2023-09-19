@@ -86,6 +86,7 @@ export default function Home() {
 
   const fetchUserBooks = async () => {
     try {
+      if (!user) return
       const token = await user?.getIdToken(true)
       const requestConfig = {
         headers: {
@@ -401,12 +402,14 @@ export default function Home() {
         </div>
       </Modal>
       {renderAuthLinks()}
-      <div id="bookDisplay" className="absolute top-20 px-4 flex gap-1 justify-center items-center">
-        <div
-          className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 ${loggedIn}`}>
-          {filteredBooks.length > 0
-            ? filteredBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)
-            : currentBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)}
+      <div className="absolute top-20">
+        <div id="bookDisplay" className="px-4 flex gap-1 justify-center items-center">
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 ${loggedIn}`}>
+            {filteredBooks.length > 0
+              ? filteredBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)
+              : currentBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)}
+          </div>
         </div>
       </div>
       {user && (

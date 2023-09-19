@@ -5,3 +5,19 @@
   /* margin-top: 0.5rem; */
   /* margin-bottom: 0.5rem; */
 }
+
+.book {
+  height: fit-content;
+}
+
+.book-cover {
+  height: 336px;
+  width: 227px;
+}
+
+@media screen and (max-width: 480px) {
+  .book-cover {
+    height: 240px;
+    width: 162px;
+  }
+}

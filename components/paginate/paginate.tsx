@@ -21,7 +21,7 @@ const Paginate = ({
   }
 
   return (
-    <div className="pagination-container">
+    <div className="pagination-container hidden md:block">
       <ul className="pagination flex gap-2">
         <li
           onClick={previousPage}

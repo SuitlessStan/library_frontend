@@ -4,11 +4,13 @@ import { useState, useEffect, CSSProperties } from "react"
 import "./CyclingBackground.css"
 import { unsplashClient } from "@/config/global"
 import { UnsplashImage } from "@/utils/types"
+import { useWindowSize } from "usehooks-ts"
 
 export default function CyclingBackground() {
   const [imageIndex, setImageIndex] = useState(0)
   const [opacity, setOpacity] = useState(0.8)
   const [photos, setPhotos] = useState<UnsplashImage | UnsplashImage[]>([])
+  const size = useWindowSize()
 
   useEffect(() => {
     const fetchSplashImages = async () => {
@@ -55,5 +57,5 @@ export default function CyclingBackground() {
     height: "100vh",
   }
 
-  return <div className="cyclingBackground" style={backgroundImageStyle}></div>
+  return <div className="cyclingBackground absolute" style={backgroundImageStyle}></div>
 }
