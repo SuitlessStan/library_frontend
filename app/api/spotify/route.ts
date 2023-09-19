@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import { NextRequest, NextResponse } from "next/server"
 import { topTracks } from "@/config/global"
 
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
+export async function GET(req, res) {
   const response = await topTracks()
   const { items } = await response.json()
 
