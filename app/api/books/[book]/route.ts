@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import axios from "axios"
 import { apiUrl } from "@/config/global"
 
-export async function GET(req: any, { params }) {
+export async function GET(req: any, { params }: { params: any }) {
   if (req.headers) {
     const config = {
       headers: {
@@ -20,14 +20,14 @@ export async function GET(req: any, { params }) {
     }
   }
 }
-export async function POST(req: any, { params }) {
+export async function POST(req: any, { params }: { params: any }) {
   if (req.headers) {
     const headers = {
       authentication: req.headers.get("authentication"),
     }
 
     const body = await req.json()
-    
+
     const options = {
       method: "POST",
       url: `${apiUrl}/users/${params.book}/books`,
