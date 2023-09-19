@@ -2,11 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import { NextRequest, NextResponse } from "next/server"
 import { topTracks } from "@/config/global"
 
-export async function GET(req, res) {
+export async function GET(req: any, res: any) {
   const response = await topTracks()
   const { items } = await response.json()
-
-  console.log("response from top tracks ", response)
 
   const tracks = items.slice(0, 5).map((track) => ({
     title: track.name,
