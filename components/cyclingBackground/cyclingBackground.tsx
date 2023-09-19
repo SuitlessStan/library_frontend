@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, CSSProperties } from "react"
-import "./CyclingBackground.css"
+import "./cyclingBackground.css"
 import { unsplashClient } from "@/config/global"
 import { UnsplashImage } from "@/utils/types"
 import { useWindowSize } from "usehooks-ts"
