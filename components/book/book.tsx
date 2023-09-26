@@ -4,6 +4,8 @@ import "./book.css"
 import { useState, useRef, FormEventHandler, MouseEventHandler } from "react"
 import { Book } from "@/utils/types"
 import { useWindowSize } from "usehooks-ts"
+import { faX } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import ProgressBar from "@ramonak/react-progress-bar"
 import { If, Else, Then } from "react-if"
 import moment from "moment"
@@ -32,17 +34,28 @@ let progressModalStyles = {
   ...customStyles,
   content: {
     ...customStyles.content,
-    width: "12rem", // Change the width value
-    height: "11rem", // Change the height value
+    width: "12rem",
+    height: "11rem",
+  },
+}
+
+let removeBookTitleModalStyle = {
+  ...customStyles,
+  content: {
+    ...customStyles.content,
+    width: "11rem",
+    height: "6rem",
+    padding: "10px",
   },
 }
 
 type BookData = {
   book: Book
   onEdit: (id: string | number, params: any[]) => void
+  onRemove: (id: string | number) => void
 }
 
-const Book: React.FC<BookData> = ({ book, onEdit }) => {
+const Book: React.FC<BookData> = ({ book, onEdit, onRemove }) => {
   let { id, title, review, author, cover_url, current_page, total_pages, createAt, updatedAt } =
     book
 
@@ -51,6 +64,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
   const [bookReview, setBookReview] = useState(review)
   const [progress, setProgress] = useState(false)
   const [modalIsOpen, setModalOpen] = useState(false)
+  const [removeBook, setRemoveBook] = useState(false)
   const [showFullContent, setShowFullContent] = useState(false)
   const [pages, setPages] = useState({
     currentPage: current_page,
@@ -59,6 +73,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
 
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const editReviewRef = useRef<HTMLButtonElement | null>(null)
+  const removeBookTitleRef = useRef<HTMLButtonElement | null>(null)
 
   const openModal = () => setModalOpen(true)
   const closeModal = () => setModalOpen(false)
@@ -68,6 +83,8 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
   const toggleProgress = () => setProgress((prevState) => !prevState)
 
   const toggleContent = () => setShowFullContent((prevState) => !prevState)
+
+  const toggleRemoveBookModal = () => setRemoveBook((prevState) => !prevState)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setBookReview(e.target.value)
@@ -153,6 +170,21 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
     }
   }
 
+  if (removeBookTitleRef.current) {
+    const { left, top, right, bottom } = caclulateModalPosition()
+    if (left && top && bottom && right) {
+      removeBookTitleModalStyle.content.top = top
+      removeBookTitleModalStyle.content.left = left
+      removeBookTitleModalStyle.content.bottom = bottom
+      removeBookTitleModalStyle.content.right = right
+    }
+  }
+
+  const removeBookTitle: MouseEventHandler<HTMLButtonElement> = (e) => {
+    const { id: bookID } = book
+    if (bookID) onRemove(bookID)
+  }
+
   current_page = current_page ? current_page : 0
   total_pages = total_pages ? total_pages : 1000
 
@@ -188,6 +220,34 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
 
   return (
     <div className="shadow-lg rounded text-center border-1 border-black bg-tertiary book">
+      <Tooltip text="delete book" className="float-right mb-2">
+        <button
+          ref={removeBookTitleRef}
+          className="rounded-3xl hover:bg-primary hover:text-secondary py-1 px-3"
+          onClick={toggleRemoveBookModal}>
+          <FontAwesomeIcon icon={faX} size="xs" className="inline-block" />
+        </button>
+      </Tooltip>
+      <Modal
+        contentLabel="Remove"
+        style={removeBookTitleModalStyle as any}
+        isOpen={removeBook}
+        ariaHideApp={false}
+        onRequestClose={toggleRemoveBookModal}>
+        <span className="block text-sm">Are you sure you want to remove this book ?</span>
+        <div className="flex gap-2 mt-2 justify-center items-center">
+          <button
+            className="text-xs md:text-md dark:bg-secondary dark:text-primary bg-primary text-secondary hover:bg-tertiary hover:text-secondary py-1 px-2 rounded"
+            onClick={removeBookTitle}>
+            Remove
+          </button>
+          <button
+            className="text-xs md:text-md dark:bg-secondary dark:text-primary bg-primary text-secondary hover:bg-tertiary hover:text-secondary py-1 px-2 rounded"
+            onClick={toggleRemoveBookModal}>
+            Cancel
+          </button>
+        </div>
+      </Modal>
       <div className="w-full text-center flex justify-center">
         <Image
           width={200}
@@ -212,7 +272,7 @@ const Book: React.FC<BookData> = ({ book, onEdit }) => {
           {moment(updatedAt ? updatedAt : createAt).format("DD MMM HH:mm")}
         </span>
         <div className="px-2">
-          <div className="flex justify-between text-sm md:text-md text-white">
+          <div className="flex justify-between text-sm md:text-md text-white py-2">
             <button ref={buttonRef} onClick={openModal}>
               <Tooltip text="edit book review" className="hidden md:block">
                 <u className="text-xs md:text-md">Edit review</u>

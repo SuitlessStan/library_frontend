@@ -33,10 +33,13 @@ export default function Navbar({
   const [open, setOpen] = useState(false)
   const [shown, setShown] = useState(false)
   const [userData, setUserData] = useState<DocumentData | null>(null)
-  const dropDownRef = useRef(null)
-  const { isDarkMode } = useDarkMode()
   const [searchBar, setSearchBar] = useState(false)
   const [searchInput, setSearchInput] = useState("")
+
+  const dropDownRef = useRef(null)
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
+
+  const { isDarkMode } = useDarkMode()
 
   const [user] = useAuthState(auth)
 
@@ -45,9 +48,17 @@ export default function Navbar({
   const hideNavbar = () => setShown(false)
 
   const toggleSearchBar = () => {
-    if (searchBar == false) setSearchBar((prevState) => !prevState)
+    if (!searchBar) {
+      setSearchBar((prevState) => !prevState)
+      if (searchInputRef.current) {
+        searchInputRef.current.focus()
+      }
+    }
     if (searchBar) {
       setSearchBar((prevState) => !prevState)
+      if (searchInputRef.current) {
+        searchInputRef.current.focus()
+      }
       setSearchInput("")
       setFilteredBooks([])
     }
@@ -136,7 +147,7 @@ export default function Navbar({
   const renderAuthLinks = () => {
     if (user) {
       return (
-        <div className="max-w-screen-xl flex justify-between items-center gap-2 mx-auto p-4">
+        <div className="flex justify-between items-center gap-2 mx-auto px-10 p-4">
           <div id="bookButtons" className="flex">
             {searchBar ? null : (
               <div className="flex gap-2">
@@ -172,6 +183,7 @@ export default function Navbar({
               {searchBar ? (
                 <input
                   type="text"
+                  ref={searchInputRef}
                   name="search"
                   placeholder="Search"
                   className={`text-black rounded active:border-none focus:border-none p-2`}
@@ -227,7 +239,7 @@ export default function Navbar({
               ref={dropDownRef}
               className={`z-50 my-4 ${
                 shown ? "block" : "hidden"
-              } absolute top-14 right-0 md:right-14 lg:right-0 xl:right-20 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
+              } absolute top-14 right-0 md:right-14 lg:right-0 list-none divide-y divide-gray-100 rounded-lg bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700`}
               id="user-dropdown">
               <div className="px-4 py-3">
                 <span className="block text-sm text-gray-900 dark:text-white">

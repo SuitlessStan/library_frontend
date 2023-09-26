@@ -21,6 +21,13 @@ export default function Home() {
   const [books, setBooks] = useState<Book[]>([])
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([])
 
+  const [modalStatus, setModalStatus] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [submissionError, setSubmissionError] = useState("")
+
+  const closeModal = () => setModalStatus(false)
+  const loggedIn = user ? " " : "hidden"
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const [booksPerPage] = useState(5)
@@ -42,10 +49,6 @@ export default function Home() {
       setCurrentPage(currentPage + 1)
     }
   }
-
-  const [modalStatus, setModalStatus] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [submissionError, setSubmissionError] = useState("")
 
   const [formData, setFormData] = useState({
     title: "",
@@ -83,6 +86,14 @@ export default function Home() {
     },
     [books]
   )
+
+  const onRemove = useCallback((id: string | number) => {
+    setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id))
+
+    const booksFromStorage = JSON.parse(localStorage.getItem("books") || "[]")
+    const updatedBooks = booksFromStorage.filter((book: Book) => book.id !== id)
+    localStorage.setItem("books", JSON.stringify(updatedBooks))
+  }, [])
 
   const fetchUserBooks = async () => {
     try {
@@ -149,9 +160,6 @@ export default function Home() {
     }
   }
 
-  const closeModal = () => setModalStatus(false)
-  const loggedIn = user ? " " : "hidden"
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prevData) => ({
@@ -165,19 +173,22 @@ export default function Home() {
   }, [user])
 
   useEffect(() => {
+    if (!books.length) {
+      return
+    }
+
+    if (books.length) {
+      const uniqueBooks = getUniqueListBy(books, "title")
+      localStorage.setItem("books", JSON.stringify(uniqueBooks))
+    }
+  }, [books])
+
+  useEffect(() => {
     const booksFromStorage = localStorage.getItem("books")
     if (booksFromStorage) {
       setBooks(JSON.parse(booksFromStorage))
     }
   }, [])
-
-  useEffect(() => {
-    if (!books?.length) {
-      return
-    }
-
-    localStorage.setItem("books", JSON.stringify(getUniqueListBy(books, "title")))
-  }, [books])
 
   const { title, current_page, total_pages, review } = formData
 
@@ -405,10 +416,14 @@ export default function Home() {
       <div className="absolute top-20">
         <div id="bookDisplay" className="px-4 flex gap-1 justify-center items-center">
           <div
-            className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 ${loggedIn}`}>
+            className={`mt-1 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 ${loggedIn}`}>
             {filteredBooks.length > 0
-              ? filteredBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)
-              : currentBooks.map((book, i) => <Book key={i} book={book} onEdit={onEdit} />)}
+              ? filteredBooks.map((book, i) => (
+                  <Book key={i} book={book} onEdit={onEdit} onRemove={onRemove} />
+                ))
+              : currentBooks.map((book, i) => (
+                  <Book key={i} book={book} onEdit={onEdit} onRemove={onRemove} />
+                ))}
           </div>
         </div>
       </div>

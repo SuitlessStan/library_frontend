@@ -16,7 +16,7 @@ const Tooltip = ({ text, children, style, className }: TooltipProps) => {
 
   return (
     <div
-      className={`tooltip-container ${className}`}
+      className={`tooltip-container ${className ? className : ""}`}
       style={style}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}>
